@@ -1,0 +1,33 @@
+
+# Makefile, ECE252  
+# Yiqing Huang, 2018/11/04
+
+CC = gcc
+CFLAGS = -Wall -g -std=c99# 
+LD = gcc
+LDFLAGS = -g 
+LDLIBS = -lz   # link with libz
+
+# For students 
+LIB_UTIL = zutil.o crc.o util.o
+SRCS   = main_zutil.c crc.c zutil.c util.c
+OBJS   = main_zutil.o $(LIB_UTIL) 
+
+TARGETS= main_zutil.out 
+
+all: ${TARGETS}
+
+main_zutil.out: $(OBJS) 
+	$(LD) -o $@ $^ $(LDLIBS) $(LDFLAGS) 
+
+%.o: %.c 
+	$(CC) $(CFLAGS) -c $< 
+
+%.d: %.c
+	gcc -MM -MF $@ $<
+
+-include $(SRCS:.c=.d)
+
+.PHONY: clean
+clean:
+	rm -f *.d *.o $(TARGETS) 
