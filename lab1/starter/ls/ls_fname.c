@@ -1,16 +1,15 @@
 /**
- * @file: ECE252/lab1/starter/ls/ls_fname.c
+ * @file: ls_fname.c
  * @brief: simple ls command to list file names of a directory 
- * @date: 2018/10/15
- */
+  */
 
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <stdio.h>          // for printf().  man 3 printf
-#include <stdlib.h>         // for exit().    man 3 exit
-#include <string.h>         // for strcat().  man strcat
+#include <stdio.h>   /* for printf().  man 3 printf */
+#include <stdlib.h>  /* for exit().    man 3 exit   */
+#include <string.h>  /* for strcat().  man strcat   */
 
 int main(int argc, char *argv[]) 
 {
@@ -30,7 +29,7 @@ int main(int argc, char *argv[])
     }
 
     while ((p_dirent = readdir(p_dir)) != NULL) {
-        char *str_path = p_dirent->d_name;  // relative path name!
+        char *str_path = p_dirent->d_name;  /* relative path name! */
 
         if (str_path == NULL) {
             fprintf(stderr,"Null pointer found!"); 

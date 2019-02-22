@@ -2,20 +2,35 @@
  * @biref To demonstrate how to use zutil.c and crc.c functions
  */
 
-#include <stdio.h>    // for printf(), perror() 
-#include <stdlib.h>   // for malloc()
-#include <errno.h>    // for errno
-#include "crc.h"      // for crc()
-#include "zutil.h"    // for mem_def() and mem_inf()
-#include "lab_png.h"  // simple PNG data structures
+#include <stdio.h>    /* for printf(), perror()...   */
+#include <stdlib.h>   /* for malloc()                */
+#include <errno.h>    /* for errno                   */
+#include "crc.h"      /* for crc()                   */
+#include "zutil.h"    /* for mem_def() and mem_inf() */
+#include "lab_png.h"  /* simple PNG data structures  */
 
-/* --- DEFINES --- */
+/******************************************************************************
+ * DEFINED MACROS 
+ *****************************************************************************/
 #define BUF_LEN  (256*16)
 #define BUF_LEN2 (256*32)
-/* ---  GLOBALS --- */
 
-U8 gp_buf_def[BUF_LEN2]; // output buffer for mem_def() // static buffer
-U8 gp_buf_inf[BUF_LEN2]; // output buffer for mem_inf() // static buffer
+/******************************************************************************
+ * GLOBALS 
+ *****************************************************************************/
+U8 gp_buf_def[BUF_LEN2]; /* output buffer for mem_def() */
+U8 gp_buf_inf[BUF_LEN2]; /* output buffer for mem_inf() */
+
+/******************************************************************************
+ * FUNCTION PROTOTYPES 
+ *****************************************************************************/
+
+void init_data(U8 *buf, int len);
+
+/******************************************************************************
+ * FUNCTIONS 
+ *****************************************************************************/
+
 /**
  * @brief initialize memory with 256 chars 0 - 255 cyclically 
  */
@@ -29,11 +44,11 @@ void init_data(U8 *buf, int len)
 
 int main (int argc, char **argv)
 {
-    U8 *p_buffer = NULL;  // a buffer that contains some data to play with
-    U32 crc_val = 0;      // CRC value
-    int ret = 0;          // return value for various routines
-    U64 len_def = 0;      // compressed data length
-    U64 len_inf = 0;      // uncompressed data length
+    U8 *p_buffer = NULL;  /* a buffer that contains some data to play with */
+    U32 crc_val = 0;      /* CRC value                                     */
+    int ret = 0;          /* return value for various routines             */
+    U64 len_def = 0;      /* compressed data length                        */
+    U64 len_inf = 0;      /* uncompressed data length                      */
     
     /* Step 1: Initialize some data in a buffer */
     /* Step 1.1: Allocate a dynamic buffer */
@@ -48,18 +63,18 @@ int main (int argc, char **argv)
 
     /* Step 2: Demo how to use zlib utility */
     ret = mem_def(gp_buf_def, &len_def, p_buffer, BUF_LEN, Z_DEFAULT_COMPRESSION);
-    if (ret == 0) { // success
+    if (ret == 0) { /* success */
         printf("original len = %d, len_def = %lu\n", BUF_LEN, len_def);
-    } else { // failure
+    } else { /* failure */
         fprintf(stderr,"mem_def failed. ret = %d.\n", ret);
         return ret;
     }
     
     ret = mem_inf(gp_buf_inf, &len_inf, gp_buf_def, len_def);
-    if (ret == 0) { // success
+    if (ret == 0) { /* success */
         printf("original len = %d, len_def = %lu, len_inf = %lu\n", \
                BUF_LEN, len_def, len_inf);
-    } else { // failure
+    } else { /* failure */
         fprintf(stderr,"mem_def failed. ret = %d.\n", ret);
     }
 
@@ -68,7 +83,7 @@ int main (int argc, char **argv)
     printf("crc_val = %u\n", crc_val);
     
     /* Clean up */
-    free(p_buffer); // free dynamically allocated memory
+    free(p_buffer); /* free dynamically allocated memory */
 
     return 0;
 }
