@@ -53,7 +53,7 @@ typedef struct simple_PNG {
     struct chunk *p_IHDR;
     struct chunk *p_IDAT;  /* only handles one IDAT chunk */  
     struct chunk *p_IEND;
-} simple_PNG_p;
+} *simple_PNG_p;
 
 /******************************************************************************
  * FUNCTION PROTOTYPES 
