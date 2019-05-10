@@ -1,1 +1,1 @@
-University of Waterloo ECE252 System Programming and Concurrency Lab Starter Files and Manual
+University of Waterloo ECE252 Systems Programming and Concurrency Lab Starter Files and Manual
