@@ -21,9 +21,6 @@
 #  define SET_BINARY_MODE(file)
 #endif
 
-#define MAX(a,b) ((a) > (b)) ? (a) : (b)
-#define MIN(a,b) ((a) < (b)) ? (a) : (b)
-
 #define CHUNK 16384  /* =256*64 on the order of 128K or 256K should be used */
 
 /* TYPEDEFS */
