@@ -52,7 +52,7 @@ void *f2(void *args)
         return NULL;
     }
     printf("dir = %s \n", dir);
-    sprintf(cmd, "du -ks %s", dir);
+    sprintf(cmd, "du -ks %s/*", dir);
     status = system(cmd);
     printf("status = %d.\n", status);
     return NULL;
@@ -178,8 +178,8 @@ int main(int argc, char **argv)
     ticks = sysconf(_SC_CLK_TCK);
     printf("_SC_CLK_TCK = %ld.\n", ticks);
 
-    time_it(f2, NULL);
     time_it(f1, NULL);
+    time_it(f2, NULL);
     
     return 0;
 }
