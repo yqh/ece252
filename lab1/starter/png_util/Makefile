@@ -1,9 +1,9 @@
 
 # Makefile, ECE252  
-# Yiqing Huang, 2018/11/04
+# Yiqing Huang
 
 CC = gcc       # compiler
-CFLAGS = -Wall -g -std=c99 # compilation flg 
+CFLAGS = -Wall -g -std=c99 # compilation flag 
 LD = gcc       # linker
 LDFLAGS = -g   # debugging symbols in build
 LDLIBS = -lz   # link with libz
