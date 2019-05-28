@@ -8,7 +8,7 @@ CFLAGS=-Wall -g
 LD=gcc
 LDFLAGS=-g
 
-
+SRCS=cmd_arg.c
 OBJS=cmd_arg.o
 
 all: cmd_arg.out
@@ -21,6 +21,8 @@ cmd_arg.out: $(OBJS)
 
 %.d: %.c
 	gcc -MM -MF $@ $<  
+
+-include $(SRCS:.c=.d) 
 
 .PHONY: clean
 clean:

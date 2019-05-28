@@ -4,7 +4,7 @@
  * EXAMPLE: ./cmd_arg.out Hello ECE252 101 201 
  */
 
-#include <stdio.h>	// printf needs to include this header file
+#include <stdio.h>	/* printf needs to include this header file */
 
 /**
  *@brief: main function that lists all command line arguments
