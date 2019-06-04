@@ -139,7 +139,7 @@ int recv_buf_init(RECV_BUF *ptr, size_t max_size)
     ptr->buf = p;
     ptr->size = 0;
     ptr->max_size = max_size;
-    ptr->seq = -1;              /* valid seq should be positive */
+    ptr->seq = -1;              /* valid seq should be non-negative */
     return 0;
 }
 
