@@ -17,9 +17,13 @@
 #include "shm_stack.h"
 
 #define STACK_SIZE 3
+void push_all(struct int_stack *p, int start);
+void pop_all(struct int_stack *p);
+void test_local();
+void test_shm();
 
-/* pushing three items to the stack */
-void push3(struct int_stack *p, int start)
+/* pushing STACK_SIZE items to the stack */
+void push_all(struct int_stack *p, int start)
 {
     int i;
     
@@ -42,8 +46,8 @@ void push3(struct int_stack *p, int start)
     
 }
 
-/* pop three items off the stack */
-void pop3(struct int_stack *p)
+/* pop STACK_SIZE items off the stack */
+void pop_all(struct int_stack *p)
 {
     int i;
     if ( p == NULL) {
@@ -73,8 +77,8 @@ void test_local()
         abort();
     };
 
-    push3(pstack, 0xFF00);
-    pop3(pstack);
+    push_all(pstack, 0xFF00);
+    pop_all(pstack);
     destroy_stack(pstack);
 }
 
@@ -98,7 +102,7 @@ void test_shm()
         pstack = shmat(shmid, NULL, 0);
         printf("parent: pstack=%p\n", pstack);
         waitpid(cpid, NULL, 0);
-        pop3(pstack);
+        pop_all(pstack);
         shmdt(pstack);
         /* We do not use free() to release the shared memory, use shmctl() */
         shmctl(shmid, IPC_RMID, NULL);
@@ -107,7 +111,7 @@ void test_shm()
         pstack = shmat(shmid, NULL, 0);
         printf("child: pstack = %p\n", pstack);
         init_shm_stack(pstack, STACK_SIZE);
-        push3(pstack, 0xABCD);
+        push_all(pstack, 0xABCD);
         shmdt(pstack);
     } else {
         perror("fork");
