@@ -100,19 +100,36 @@ void test_shm()
     if ( cpid > 0 ) {           /* parent proc pops */
         struct int_stack *pstack;    
         pstack = shmat(shmid, NULL, 0);
-        printf("parent: pstack=%p\n", pstack);
+        if ( pstack == (void *) -1 ) {
+            perror("shmat");
+            abort();
+        }
+        printf("parent: pstack = %p\n", pstack);
         waitpid(cpid, NULL, 0);
         pop_all(pstack);
-        shmdt(pstack);
+        if ( shmdt(pstack) != 0 ) {
+            perror("shmdt");
+            abort();
+        }
         /* We do not use free() to release the shared memory, use shmctl() */
-        shmctl(shmid, IPC_RMID, NULL);
+        if ( shmctl(shmid, IPC_RMID, NULL) == -1 ) {
+            perror("shmctl");
+            abort();
+        }
     } else if ( cpid == 0 ) {   /* child proc pushes */
         struct int_stack *pstack;    
         pstack = shmat(shmid, NULL, 0);
+        if ( pstack == (void *) -1 ) {
+            perror("shmat");
+            abort();
+        }
         printf("child: pstack = %p\n", pstack);
         init_shm_stack(pstack, STACK_SIZE);
         push_all(pstack, 0xABCD);
-        shmdt(pstack);
+        if ( shmdt(pstack) != 0 ) {
+            perror("shmdt");
+            abort();
+        }
     } else {
         perror("fork");
         abort();
