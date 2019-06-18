@@ -5,7 +5,7 @@
  * This software may be freely redistributed under the terms of the X11 License.
  */
 /**
- * @brief  stack to hold integer API header  
+ * @brief  stack to push/pop integer(s), API header  
  * @author yqhuang@uwaterloo.ca
  */
 

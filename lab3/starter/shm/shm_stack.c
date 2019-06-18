@@ -6,7 +6,7 @@
  */
 
 /**
- * @brief  stack to for push/pop integers.   
+ * @brief  stack to push/pop integers.   
  */
 
 #include <stdio.h>

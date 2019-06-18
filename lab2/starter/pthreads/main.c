@@ -7,7 +7,7 @@
 /**
  * @file main.c
  * @biref To create and join 2 threads. Each thread takes more than one input parameter 
- *        and return more than one result value.
+ *        and returns more than one result value.
  */
 
 #include <stdio.h>
