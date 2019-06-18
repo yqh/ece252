@@ -14,10 +14,13 @@
  */
 
 /** 
- * @file main_wirte_read_cb.c
- * @brief cURL write call back to save received data in a shared memory first
- *        and then write the data to a file for verification purpose.
+ * @file main_2proc.c
+ * @brief Two processes system. The child process uses cURL to download data to
+ *        a shared memory region through cURL call back.
+ *        The parent process wait till the child to finish and then 
+ *        read the data from the shared memory region and output it to a file.
  *        cURL header call back extracts data sequence number from header.
+ *        Synchronization is done through waitpid, no semaphores are used.
  * @see https://curl.haxx.se/libcurl/c/getinmemory.html
  * @see https://curl.haxx.se/libcurl/using/
  * @see https://ec.haxx.se/callback-write.html
@@ -38,7 +41,7 @@
 #define IMG_URL "http://ece252-1.uwaterloo.ca:2530/image?img=1&part=20"
 #define DUM_URL "https://example.com/"
 #define ECE252_HEADER "X-Ece252-Fragment: "
-#define BUF_SIZE 1048576  /* 1024*1024 = 1M */
+#define BUF_SIZE 10240  /* 1024*10 = 10K */
 
 /* This is a flattened structure, buf points to 
    the memory address immediately after 
@@ -64,7 +67,7 @@
    + buf[max_size-1]| 1 byte
    +================+
 */
-typedef struct recv_buf_compact {
+typedef struct recv_buf_flat {
     char *buf;       /* memory to hold a copy of received data */
     size_t size;     /* size of valid data in buf in bytes*/
     size_t max_size; /* max capacity of buf in bytes*/

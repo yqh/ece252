@@ -14,13 +14,14 @@
  */
 
 /** 
- * @file main_wirte_read_cb.c
+ * @file main.c
  * @brief cURL write call back to save received data in a shared memory first
  *        and then write the data to a file for verification purpose.
  *        cURL header call back extracts data sequence number from header.
  * @see https://curl.haxx.se/libcurl/c/getinmemory.html
  * @see https://curl.haxx.se/libcurl/using/
  * @see https://ec.haxx.se/callback-write.html
+ * NOTE: we assume each image segment from the server is less than 10K
  */ 
 
 
@@ -38,7 +39,7 @@
 #define IMG_URL "http://ece252-1.uwaterloo.ca:2530/image?img=1&part=20"
 #define DUM_URL "https://example.com/"
 #define ECE252_HEADER "X-Ece252-Fragment: "
-#define BUF_SIZE 10240 //1048576  /* 1024*1024 = 1M */
+#define BUF_SIZE 10240 /* 1024*10 = 10K */
 
 /* This is a flattened structure, buf points to 
    the memory address immediately after 
@@ -64,7 +65,7 @@
    + buf[max_size-1]| 1 byte
    +================+
 */
-typedef struct recv_buf_compact {
+typedef struct recv_buf_flat {
     char *buf;       /* memory to hold a copy of received data */
     size_t size;     /* size of valid data in buf in bytes*/
     size_t max_size; /* max capacity of buf in bytes*/
