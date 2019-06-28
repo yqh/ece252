@@ -12,7 +12,7 @@
 #              ./run_lab3.sh 1
 #             
 # Course Name: ECE252 Systems Programming and Concurrency
-# Description: Lab4 utility - extracting timing info.
+# Description: Lab3 utility - extracting timing info.
 #              The script assumes the following output format at stdout
 #              from the producer process.
 #              Please do not output anything else to stdout.
