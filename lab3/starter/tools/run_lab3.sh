@@ -167,7 +167,7 @@ gen_table ()
 }
 
 if [ $# -ne 1 ]; then
-    echo "Usage: ./run_lab4.sh <N>"
+    echo "Usage: ./run_lab3.sh <N>"
     echo "  N: image number, valide values are 1, 2 or 3"
     exit 1
 fi
