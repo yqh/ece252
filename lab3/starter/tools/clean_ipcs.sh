@@ -4,13 +4,13 @@
 
 USERID=`whoami`
 
-# clean shared all shared memory regions owned by USERID
+# clean all shared memory regions owned by USERID
 for id in `ipcs -m | grep $USERID | awk -F' ' '{print $2}' `
 do
     ipcrm -m $id
 done
 
-# clean shared all semaphores owned by USERID
+# clean all semaphores owned by USERID
 for id in `ipcs -s | grep $USERID | awk -F' ' '{print $2}' `
 do
     ipcrm -s $id
