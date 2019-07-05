@@ -10,6 +10,9 @@
 #              ./run_lab3.sh <N>
 #              where N is the image number. For example
 #              ./run_lab3.sh 1
+#              You can put the script in background and subsequent logout does not
+#              stop it by using the following command:
+#              nohup ./run_lab3.sh 1 &
 #             
 # Course Name: ECE252 Systems Programming and Concurrency
 # Description: Lab3 utility - extracting timing info.
