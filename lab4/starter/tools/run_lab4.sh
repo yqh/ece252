@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash  -x
 ############################################################################
 # File Name  : run_lab4.sh
 # Author     : Yiqing Huang 
@@ -29,8 +29,8 @@
 #  where $$ is the pid of process that executing this shell script.
 #############################################################################
 PROG="./findpng2"
-T="1 5 10"
-M="1 10 20 30 40 50 60"
+T="1 10 20"
+M="1 10 20 30 40 50 100"
 NN=5
 
 exec_producer () 
