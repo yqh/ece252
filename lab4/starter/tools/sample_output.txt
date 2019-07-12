@@ -1,0 +1,1 @@
+findpng2 execution time: 15.123456 seconds
