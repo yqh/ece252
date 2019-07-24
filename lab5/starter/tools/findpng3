@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ $# -lt 5 ]; then
+    echo "Usage: $0 -t T -m M seed_url"
+    echo "Example: $0 -t 10 -m 50 http://ece252-1.uwaterloo.ca/lab5"
+    exit 1
+fi
+echo "findpng3 execution time: 15.123456 seconds"
+touch png_urls.txt
