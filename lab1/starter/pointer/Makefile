@@ -1,7 +1,3 @@
-
-# ECE254/lab1/starter/pointer/Makefile
-# 2014/05/05
-
 CC=gcc
 CFLAGS=-Wall -g
 LD=gcc
@@ -13,7 +9,7 @@ OBJS=pointer.o
 all: pointer.out
 
 pointer.out: $(OBJS) 
-	$(LD) $(CFLAGS) $(LDFLAGS) -o main.out $(OBJS) 
+	$(LD) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) 
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
