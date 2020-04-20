@@ -3,7 +3,7 @@
 # Yiqing Huang, 2019/06/12
 
 CC = gcc       # compiler
-CFLAGS = -Wall -g # compilation flg 
+CFLAGS = -Wall -g  -std=gnu99# compilation flg 
 LD = gcc       # linker
 LDFLAGS = -g   # debugging symbols in build
 LDLIBS =       # link with libz
