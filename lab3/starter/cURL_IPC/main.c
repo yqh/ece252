@@ -47,22 +47,26 @@
    Here is the memory layout. 
    Note that the memory is a chunk of continuous bytes.
 
+   On a 64-bit machine, the memory layout is as follows:
+
    +================+
    | buf            | 8 bytes
    +----------------+
-   | size           | 4 bytes
+   | size           | 8 bytes
    +----------------+
-   | max_size       | 4 bytes
+   | max_size       | 8 bytes
    +----------------+
    | seq            | 4 bytes
+   +----------------+
+   | padding        | 4 bytes
    +----------------+
    | buf[0]         | 1 byte
    +----------------+
    | buf[1]         | 1 byte
    +----------------+
-   + ...            | 1 byte
+   | ...            | 1 byte
    +----------------+
-   + buf[max_size-1]| 1 byte
+   | buf[max_size-1]| 1 byte
    +================+
 */
 typedef struct recv_buf_flat {

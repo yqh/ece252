@@ -19,6 +19,7 @@
 
 #define SHM_SIZE 1024 
 #define SEM_PROC 1
+#define NUM_SEMS 2
 
 
 int main( int argc, char** argv ) {
@@ -28,7 +29,7 @@ int main( int argc, char** argv ) {
 
     /* allocate two shared memory regions */
     int shmid = shmget(IPC_PRIVATE, SHM_SIZE, IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
-    int shmid_sems = shmget(IPC_PRIVATE, sizeof(sem_t) * 2, IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
+    int shmid_sems = shmget(IPC_PRIVATE, sizeof(sem_t) * NUM_SEMS, IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
 
     if (shmid == -1 || shmid_sems == -1) {
         perror("shmget");
@@ -90,6 +91,12 @@ int main( int argc, char** argv ) {
             perror("shmctl");
             abort();
         }
+
+        if (sem_destroy(&sems[0]) || sem_destroy(&sems[1])) {
+            perror("sem_destroy");
+            abort();
+        }
+
     } else if ( cpid == 0 ) { /* Child */
         printf("Child is sleeping before sending a message to the parent.\n");
         usleep(rand()%50000);

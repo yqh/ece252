@@ -1,6 +1,9 @@
 /**
  * @brief  micros and structures for a simple PNG file 
- * @author yqhuang@uwaterloo.ca
+ *
+ * Copyright 2018-2019 Yiqing Huang
+ *
+ * This software may be freely redistributed under the terms of MIT License
  */
 #pragma once
 
@@ -28,7 +31,7 @@ typedef unsigned int  U32;
 typedef struct chunk {
     U32 length;  /* length of data in the chunk, host byte order */
     U8  type[4]; /* chunk type */
-    U8  *p_data; /* pointer to location where the actual data is */
+    U8  *p_data; /* pointer to location where the actual data are */
     U32 crc;     /* CRC field  */
 } *chunk_p;
 
@@ -40,7 +43,7 @@ typedef struct data_IHDR {// IHDR chunk data
     U32 width;        /* width in pixels, big endian   */
     U32 height;       /* height in pixels, big endian  */
     U8  bit_depth;    /* num of bits per sample or per palette index.
-			 valid values are: 1, 2, 4, 8, 16 */
+                         valid values are: 1, 2, 4, 8, 16 */
     U8  color_type;   /* =0: Grayscale; =2: Truecolor; =3 Indexed-color
                          =4: Greyscale with alpha; =6: Truecolor with alpha */
     U8  compression;  /* only method 0 is defined for now */
@@ -58,5 +61,9 @@ typedef struct simple_PNG {
 /******************************************************************************
  * FUNCTION PROTOTYPES 
  *****************************************************************************/
+int is_png(U8 *buf, size_t n);
+int get_png_height(struct data_IHDR *buf);
+int get_png_width(struct data_IHDR *buf);
+int get_png_data_IHDR(struct data_IHDR *out, FILE *fp, long offset, int whence);
 
 /* declare your own functions prototypes here */

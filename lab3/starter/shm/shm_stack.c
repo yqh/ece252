@@ -149,7 +149,7 @@ int is_empty(ISTACK *p)
 }
 
 /**
- * @brief push one ineger onto the stack 
+ * @brief push one integer onto the stack 
  * @param ISTACK *p the address of the ISTACK data structure
  * @param int item the integer to be pushed onto the stack 
  * @return 0 on success; non-zero otherwise
@@ -171,7 +171,7 @@ int push(ISTACK *p, int item)
 }
 
 /**
- * @brief push one ineger onto the stack 
+ * @brief push one integer onto the stack 
  * @param ISTACK *p the address of the ISTACK data structure
  * @param int *item output parameter to save the integer value 
  *        that pops off the stack 

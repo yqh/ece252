@@ -4,11 +4,11 @@ LD=gcc
 LDFLAGS=-g
 
 
-OBJS=pointer.o
+OBJS=main_segv.o
 
-all: pointer.out
+all: main_segv.out
 
-pointer.out: $(OBJS) 
+main_segv.out: $(OBJS) 
 	$(LD) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) 
 
 .c.o:
