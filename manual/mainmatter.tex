@@ -1,0 +1,36 @@
+\mainmatter
+
+%PART I, Lab Administration 
+\part{Lab Administration}
+\label{part_admin}
+\input{p1_policy}
+
+%PART II, Lab Projects
+\part{Lab Projects}
+\renewcommand{\chaptername}{Lab}
+\label{part_proj_description}
+\input{lab1_intro_linux_sys_prog}
+\input{lab2_curl_pthreads}
+\input{lab3_producer_consumer}
+\input{lab4_crawler}
+\input{lab5_aio}
+
+%PART III, Development Tools Reference
+\part{Software Development Environment Quick Reference Guide}
+\label{part_ref}
+\makeatletter
+\renewcommand{\chaptername}{Chapter}
+\renewcommand{\thefigure}{C\@arabic\c@figure}
+\renewcommand{\thetable}{C\@arabic\c@table}
+\makeatother
+\input{p3_linux_dev_tools}
+
+% Appendix
+\appendix
+\input{app_group_split_request_form}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main_book"
+%%% End:

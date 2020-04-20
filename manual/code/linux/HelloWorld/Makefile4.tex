@@ -1,0 +1,16 @@
+# Makefile to build app.out
+CC=gcc
+CFLAGS=-Wall -g
+LD=gcc
+LDFLAGS=-g
+
+OBJS=src1.o src2.o
+
+all: app.out
+app.out: $(OBJS) 
+	$(LD) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) 
+.c.o:
+	$(CC) $(CFLAGS) -c $<
+.PHONY: clean
+clean:
+	rm -f *.o *.out 

@@ -1,0 +1,9 @@
+all: app.out
+app.out: src1.o src2.o 
+	gcc -o app.out src1.o src2.o 
+src1.o: src1.c
+	gcc -c src1.c
+src2.o: src2.c
+	gcc -c src2.c
+clean:
+	rm *.o app.out

@@ -1,0 +1,192 @@
+\chapter{Asynchronous I/O with cURL}
+
+\section{Objectives}
+This lab is to design and implement a single-threaded web crawler. In the previous lab, we designed and implemented a multi-threaded concurrent web crawler by using blocking I/O with cURL in each thread. Another solution to make the program concurrent is to use non-blocking I/O known as asynchronous I/O. The cURL multi interface enables multiple simultaneous transfers in the same thread.
+
+
+After this lab, students will be able to
+\begin{itemize}
+\item design and implement a single-threaded concurrent program by using asynchronous I/O; and
+\item gain experiences in cURL multi-interface.
+\end{itemize}
+
+\section{Starter Files}
+The starter files are on GitHub at url: \url{http://github.com/yqh/ece252/tree/master/lab5/starter}. It contains the following sub-directories where we have example code to help you get started:
+
+\begin{itemize}
+\item the \href{http://github.com/yqh/ece252/tree/master/lab5/starter/curl_multi}{curl\_multi} has example code to show how to use curl multi interface API; and
+\item the \href{http://github.com/yqh/ece252/tree/master/lab5/starter/tools}{tools} has a shell script to compute statistics of timing data.
+\end{itemize}
+The \href{http://github.com/yqh/ece252/tree/master/lab5/starter/lab5_eceubuntu1.csv}{lab5\_eceubunt1.csv} is the template file that you will need for submitting timing results (see Section \ref{sec:lab5:postlab}).
+
+\section{Pre-lab Preparation}
+Build and run the starter code to see what they do. You should work through the provided starter code to understand how they work. 
+Read the documentation of curl multi interface at the following URLs:
+  \begin{itemize}
+  \item \href{https://curl.haxx.se/libcurl/c/libcurl-multi.html}{The curl multi interface overview}; and
+  \item \href{https://ec.haxx.se/libcurl-drive-multi.html}{Driving with multi interface}.
+  \end{itemize}
+
+\section{Lab Assignment}
+\subsection{Problem Statement}
+We are still solving the PNG URLs searching problem defined in lab4. Instead of creating a multi-threaded web crawler, we will create a single-threaded concurrent web crawler by using non-blocking I/O to enable simultaneous transfers. You will need to use the curl multi API.
+
+This time, the solution should {\em not} use pthreads. However, it should keep multiple concurrent connections to servers open. We will create a single-threaded web crawler named \verb+findpng3+ to search the web given a seed URL and find all the URLs that link to PNG images.
+
+\subsection{The findpng3 command}
+The expected behaviour of the \verb+findpng3+ is given in the following manual page of the command.
+\subsubsection{Man page of findpng3}
+\label{sec:findpng3_manpage}
+\subsubsection*{NAME}
+\begin{itemize}
+	\item[]{\bf findpng3} - search for PNG file URLs on the web using a single thread
+\end{itemize}
+\subsubsection*{SYNOPSIS}
+\begin{itemize}
+	\item[]{\bf findpng3} [OPTION]... SEED\_URL
+\end{itemize}
+\subsubsection*{DESCRIPTION}
+\begin{itemize}
+\item[]Start from the SEED\_URL and search for PNG file URLs on the world wide web and return the search results to a plain text file named \code{png\_urls.txt} in the current working directory. Output the execution time in seconds to the standard output.
+\item[] {\bf -t}=NUM
+  \begin{itemize}
+  \item[] keep maximum NUM concurrent connections\footnote{There are two implementation options when you launch up to NUM transfer requests. One is to launch up to NUM transfer requests in batch, wait all of them to complete and then move to the next group of requests in batch. Another one is immediate replacement of the individual handle. We recommend the second approach. But the first one is accepted.} to servers open when crawling the web. When this option is not specified, assumes a single connection. 
+  \end{itemize}
+\item[] {\bf -m}=NUM
+  \begin{itemize}
+  \item[] find up to NUM of unique PNG URLs on the web. It is possible that the search results is less than NUM of URLs. When this option is not specified, assumes NUM=50. 
+  \end{itemize}
+\item[] {\bf -v}=LOGFILE
+  \begin{itemize}
+  \item[] log the visited URLs by the crawler, one URL per line in LOGFILE.
+  \end{itemize}
+\end{itemize}
+\subsubsection*{OUTPUT FORMAT}
+\begin{itemize}
+\item[]The time to execute the program is output to the standard output. It will look like the following:
+\begin{verbatim}
+findpng3 execution time: S seconds
+\end{verbatim}
+  The search results is a list of PNG URLs, one URL per line saved in a file named \code{png\_urls.txt}. The order of listing the search results is not specified. If the search result is empty, then create an empty search result file.
+\end{itemize}
+\subsubsection*{EXAMPLES}
+\begin{verbatim}
+    findpng3 -t 10 -m 20 -v log.txt http://ece252-1.uwaterloo.ca/lab4
+\end{verbatim}
+\begin{itemize}
+\item[]Find up to 20 PNG URLs starting from \url{http://ece252-1.uwaterloo.ca/lab4} by keeping maximum 10 concurrent connections open to servers.
+The output on the standard output will look like the following:
+\begin{verbatim}
+findpng3 execution time: 10.123456 seconds
+\end{verbatim}
+The first two lines in the \code{png\_urls.txt} file may look like the following:
+\begin{verbatim}
+http://ece252-2.uwaterloo.ca:2540/img?q=tyfoighidfyseoid==
+http://ece252-1.uwaterloo.ca:2541/img?q=kjvjkjxsroutqpqkgh
+\end{verbatim}
+An empty search result will generate \code{an empty png\_urls.txt} file.
+
+The first two lines in the \code{log.txt} file may look like the following:
+\begin{verbatim}
+http://ece252-1.uwaterloo.ca/lab4
+http://ece252-1.uwaterloo.ca/~yqhuang/lab4/index.html
+\end{verbatim}
+\end{itemize}
+
+\iffalse
+\subsection{Bonus Features}
+\label{sec:findpng3_bonus}
+For each valid PNG image segment the lab server sends, it comes with a sequence number in the HTTP header (see \ref{sec:lab2_problem_statement}). You do not need this sequence number if you are only interested in searching valid PNG links. If you want to go a step further to concatenate the received valid PNG segments, then you will need their sequence numbers. Add an extra option of \code{-o=FILENAME} to the \code{findpng3} command to concatenate in memory all PNG image segments found in the order of their sequence numbers and output the concatenated image from memory to FILENAME. 
+\subsubsection*{EXAMPLE}
+\begin{verbatim}
+    findpng3 -t 10 -m 50 -v log.txt -o output.png \
+             http://ece252-1.uwaterloo.ca/lab4
+\end{verbatim}
+\begin{itemize}
+\item[]Find up to 50 PNG URLs starting from \url{http://ece252-1.uwaterloo.ca/lab4} by keeping maximum 10 concurrent connections open to servers.
+Concatenate the found image segments in the order of the sequence numbers and output the concatenated image to \code{output.png}. 
+Output the search results to \code{png\_urls.txt} file, one url per line. Output all the visited URLs by the crawler to \code{log.txt} file, one url per line. The execution time (in seconds) of the program is output to the standard output.
+\end{itemize}
+
+
+\subsection{Programming Tips}
+You will need a number of lists to keep track of different sets of URLs. One list is for the URLs frontier, which contains to-be-visited URLs. One list is for recording all the URLs that have been visited. Another list is for the PNG URLs that have been found. To crawl the web using multiple threads, these lists are shared between threads. Hence you need to synchronize them. Some lists can only be accessed by one thread both when reading and writing. Some lists may be accessed by multiple threads when reading, but only one thread when writing.
+
+Another subtle difficulty is to know when to terminate the program. The program should terminate either when there are no more URLs in the URLs frontier or the user specified number of PNG URLs have been found. You may need some shared counters to keep track of information such as how many PNG URLs have been found and how many threads are waiting for a new URL.
+
+If an URL has been visited already, then we do not want to visit it again. So a search of visited-URLs list is needed. Hashing will make the search very effective and you may consider using a hash table to represent this already-visited list. The glibc has hash table API (\code{man hsearch(3)}).
+\fi
+\section{Deliverables}
+\subsection{Pre-lab Deliverables}
+There is no pre-lab deliverable for this lab.
+
+\subsection{Post-lab Deliverables}
+\label{sec:lab5:postlab}
+Put the following items under a directory named lab5:
+\begin{enumerate}
+\item All the source code and a Makefile. The Makefile default target is \verb+findpng3+ executable file. That is command \verb+make+ should generate the \verb+findpng3+ executable file. We also expect that the command \verb+make clean+ will remove the object code and the default target. That is the \verb+.o+ files and the executable file should be removed.
+\item A timing result .csv file named lab5\_hostname.csv 
+  which contains the timing results by running the findpng3 on a server whose name is hostname. For example, \verb+lab5_eceubuntu1.csv+ means findpng3 was executed on the server eceubuntu1 and the file contains the timing results.
+  The first line of the file is the header of the timing result table. The rest of the rows are the timing result command line argument values and the timing results. The columns of the .csv file from left to right are values of $T$ (the number of threads), $M$ (the number of unique PNG links to search for) and $TIME$ (the corresponding findpng3 average execution time). We have an example .csv file in the starter code folder named \verb+lab5_eceubuntu1.csv+ for illustration purpose.
+
+  Run your findpng3 on eceubuntu1. Record the average timing measurement data for the $(T, M)$ values shown in Table \ref{tb_timing_lab5} for a particular host. Note that for each given $(T, M)$ value in the table, you need to run the program $n$ times and compute the average time. We recommend $n=5$.
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+T     & M    & Time \\ \hline
+
+1 &    1 &    \\ \hline
+1 &    10 &    \\ \hline
+1 &    20 &    \\ \hline
+1 &    30 &    \\ \hline
+1 &    40 &    \\ \hline
+1 &    50 &    \\ \hline
+1 &    100 &    \\ \hline
+10 &    1 &    \\ \hline
+10 &    10 &    \\ \hline
+10 &    20 &    \\ \hline
+10 &    30 &    \\ \hline
+10 &    40 &    \\ \hline
+10 &    50 &    \\ \hline
+10 &    100 &    \\ \hline
+20 &    1 &    \\ \hline
+20 &    10 &    \\ \hline
+20 &    20 &    \\ \hline
+20 &    30 &    \\ \hline
+20 &    40 &    \\ \hline
+20 &    50 &    \\ \hline
+20 &    100 &    \\ \hline
+
+\end{tabular}
+\caption{Timing measurement data table for given $(T, M)$ values.}
+\label{tb_timing_lab5}
+\end{center}
+\end{table}
+\end{enumerate}
+Use \verb+zip+ command to archive and compress the contents of lab5 directory and name it \verb+lab5.zip+. We expect the command \verb+unzip lab5.zip+ will produce a \verb+lab5+ sub-directory in the current working directory and under the \verb+lab5+ sub-directory we will find your source code, the Makefile and the lab5\_hostname.csv file.
+
+\section{Marking Rubric}
+The Rubric for marking is listed in Table \ref{tb_lab5_aio_rubric}.
+
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|p{4cm}|p{10cm}|}
+\hline
+Points & Description \\ \hline
+10     & Makefile correctly builds and cleans \verb+findpng3+\\ \hline  
+65     & Implementation of \verb+findpng3+ in Section \ref{sec:findpng3_manpage} \\ \hline
+25     & Correct timing results in lab5\_hostname.csv file\\ \hline
+% \hline
+% Bonus Points & \\ \hline  
+%50     & Implementation of the bonus feature in Section \ref{sec:findpng3_bonus} \\ \hline  
+\end{tabular}
+\caption{Lab5 Marking Rubric}
+\label{tb_lab5_aio_rubric}
+\end{center}
+\end{table}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main_book"
+%%% End:

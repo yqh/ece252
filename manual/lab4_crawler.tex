@@ -1,0 +1,224 @@
+\chapter{A Multi-threaded Web Crawler}
+
+\section{Objectives}
+This lab is to design and implement a multi-threaded web crawler. In the previous lab, we practised memory sharing between processes as a means to communicate between processes. Sharing memory between threads are a lot easier since they live in the same address space. We do not need the operating system's involvement to have a shared memory region between threads. In addition, creating/destroying threads is less expensive than creating/terminating child processes. 
+
+However we still need to avoid race conditions in the memory region that threads are sharing. Aside from mutex and semaphore, the operating system also provides condition variable and atomic type facilities. 
+
+After this lab, students will be able to
+\begin{itemize}
+\item design and implement a multi-threaded concurrent program that requires more than one synchronization pattern; and
+\item gain more experiences in the Linux mutex, semaphore, condition variable and atomic type facilities to synchronize threads.
+\end{itemize}
+
+\section{Starter Files}
+The starter files are on GitHub at url: \url{http://github.com/yqh/ece252/tree/master/lab4/starter}. It contains the following sub-directories where we have example code to help you get started:
+
+\begin{itemize}
+%\item the \href{http://github.com/yqh/ece252/tree/master/lab4/starter/parse}{cURL\_header} has example code to show how to use curl header call back function to display all the http response headers; and
+%\item the \href{http://github.com/yqh/ece252/tree/master/lab4/starter/parser}{parser} has example code of parsing an html file and extracts http links.
+\item the \href{http://github.com/yqh/ece252/tree/master/lab4/starter/curl_xml}{curl\_xml} has example code to show how to use curl and libxml2 together to identify a possible png page and extract http(s) links from a html page.
+\item the \href{http://github.com/yqh/ece252/tree/master/lab4/starter/tools}{tools} has a shell script to compute statistics of timing data.
+\end{itemize}
+The \href{http://github.com/yqh/ece252/tree/master/lab4/starter/lab4_eceubuntu1.csv}{lab4\_eceubunt1.csv} is the template file that you will need for submitting timing results (see Section \ref{sec:lab4:postlab}).
+
+\section{Pre-lab Preparation}
+Read the entire lab4 manual to understand what the lab assignment is about. Build and run the starter code to see what they do. You should work through the provided starter code to understand how they work. The following activities will help you to understand the code.
+\begin{enumerate}
+\item Run the given starter code with the following URLs and examine responses from the server in the http header. 
+  \begin{itemize}
+  \item \url{http://ece252-1.uwaterloo.ca/lab4}
+  \item \url{http://ece252-1.uwaterloo.ca/lab3/index.html}
+  \item \url{http://ece252-1.uwaterloo.ca/~yqhuang/lab4/Disguise.png}
+  \item \url{http://ece252-1.uwaterloo.ca:2530/image?img=1&part=1}
+  \end{itemize}
+\item Execute \code{man pthread\_cond} to read the man page of condition variable.
+\end{enumerate}
+Linux man pages are also available on line at \url{https://linux.die.net/}.
+
+Create a single-threaded implementation of the \verb+findpng2+ command (see Section \ref{sec:findpng2_man}). Finish the pre-lab deliverable (see Section \ref{sec:lab4-pre-lab-deliverable}).
+
+\section{Lab Assignment}
+\subsection{Problem Statement}
+In the previous labs, the URLs\footnote{URL stands for Uniform Resource Locator (see \url{https://en.wikipedia.org/wiki/URL}). It is a web page address. For the purpose of this lab, it starts with the string ``http://''} to download the image segments are given. In this lab, you will need to search some HTTP lab servers to find these URLs. We have 50 different URLs, each of which links to a unique PNG image segment of a particular image. The mission is to search for these URLs on the lab servers\footnote{This lab does not require one to concatenate these segments. However if you are interested in what these segments are, then you can use your catpng to restore the original image after downloading all the segments or directly concatenate the segments in memory using lab2/3 code. The simple PNG format, dimensions of each image segment and the http header that tells you which segment you are getting are the same as what we had in previous labs.}.
+%and find all of them and put them in a flat file named \verb+png_urls.txt+, where each line is a PNG image segment URL.
+
+To solve the problem, we will create a multi-threaded web crawler named \verb+findpng2+ to search the web given a seed URL and find all the URLs that link to PNG images.
+
+\subsection{The findpng2 command}
+The expected behaviour of the \verb+findpng2+ is given in the following manual page of the command.
+\subsubsection{Man page of findpng2}
+\label{sec:findpng2_man}
+\subsubsection*{NAME}
+\begin{itemize}
+	\item[]{\bf findpng2} - search for PNG file URLs on the web
+\end{itemize}
+\subsubsection*{SYNOPSIS}
+\begin{itemize}
+	\item[]{\bf findpng2} [OPTION]... SEED\_URL
+\end{itemize}
+\subsubsection*{DESCRIPTION}
+\begin{itemize}
+\item[]Start from the SEED\_URL and search for PNG file URLs on the world wide web and return the search results to a plain text file named \code{png\_urls.txt} in the current working directory. Output the execution time in seconds to the standard output.
+\item[] {\bf -t}=NUM
+  \begin{itemize}
+  \item[] create NUM threads simultaneously crawling the web. Each thread uses the curl blocking I/O to download the data and then process the downloaded data. The total number of pthread\_create() invocations should equal to NUM specified by the -t option. When this option is not specified, assumes a single-threaded implementation.
+  \end{itemize}
+\item[] {\bf -m}=NUM
+  \begin{itemize}
+  \item[] find up to NUM of unique PNG URLs on the web. It is possible that the search results is less than NUM of URLs. When this option is not specified, assumes NUM=50. 
+  \end{itemize}
+\item[] {\bf -v}=LOGFILE
+  \begin{itemize}
+  \item[] log all the visited URLs by the crawler, one URL per line in LOGFILE. When this option is not specified, do not log any visited URLs by the crawler and do not create any visited URLs log file.
+  \end{itemize}
+\end{itemize}
+\subsubsection*{OUTPUT FORMAT}
+\begin{itemize}
+\item[]The time to execute the program is output to the standard output. It will look like the following:
+\begin{verbatim}
+findpng2 execution time: S seconds
+\end{verbatim}
+  The search results is a list of PNG URLs, one URL per line saved in a file named \code{png\_urls.txt}. The order of listing the search results is not specified. If the search result is empty, then create an empty search result file.
+\end{itemize}
+\subsubsection*{EXAMPLES}
+\begin{verbatim}
+    findpng2 -t 10 -m 20 -v log.txt http://ece252-1.uwaterloo.ca/lab4
+\end{verbatim}
+\begin{itemize}
+\item[]Find up to 20 PNG URLs starting from \url{http://ece252-1.uwaterloo.ca/lab4} using 10 threads.
+The output on the standard output will look like the following:
+\begin{verbatim}
+findpng2 execution time: 10.123456 seconds
+\end{verbatim}
+The first two lines in the \code{png\_urls.txt} file may look like the following:
+\begin{verbatim}
+http://ece252-2.uwaterloo.ca:2540/img?q=tyfoighidfyseoid==
+http://ece252-1.uwaterloo.ca:2541/img?q=kjvjkjxsroutqpqkgh
+\end{verbatim}
+An empty search result will generate \code{an empty png\_urls.txt} file.
+
+The first two lines in the \code{log.txt} file may look like the following:
+\begin{verbatim}
+http://ece252-1.uwaterloo.ca/lab4
+http://ece252-1.uwaterloo.ca/~yqhuang/lab4/index.html
+\end{verbatim}
+\end{itemize}
+
+\subsection{Web crawling}
+The \verb+findpng2+ is a tiny simplified web crawler. It searches the web by starting from a seed URL. The crawler visits the given URL page and finds two pieces of information.
+
+The first piece is the URLs that link to valid PNG images\footnote{A valid PNG image is a file whose first 8 bytes matches the PNG signature bytes}. The crawler adds PNG URLs found to a search result table. We want this table to contain unique URLs, hence if the found URL is already in the table, you should not add it to the table.
+
+The second piece is a set of new URLs to further crawl. The crawler adds this set of new URLs to a URLs pool known as the \code{URLs frontier}. Since visiting web pages has costs, we do not want the crawler to visit the same page twice. Hence the crawler needs a mechanism to remember URLs that have been visited already. As the crawler visits the URLs in the URLs frontier, the process of finding the target PNG URLs and new URLs to further explore repeats until it finds no more new PNG URL or it reaches the maximum number of PNG URLs specified by the user input.
+
+\subsection{The HTTP}
+HTTP stands for ``Hypertext Transfer Protocol''. They carry important information about the client requests and the server responses. When the client sends an URL to the server, it makes an HTTP GET request to the server and the detailed information about the request is in the headers. The server will first respond with an HTTP response status code line. There are three categories we need to handle in this lab.
+\begin{itemize}
+\item HTTP/1.1 2XX. This is a success response. We need to process the data the link gives.
+\item HTTP/1.1 3XX. This is the case the link has been relocated. By feeding the \code{curl\_easy\_setopt} with the \code{CURLOPT\_FOLLOWLOCATION}, curl will follow the relocated links.  The \code{CURLOPT\_MAXREDIRS} in the curl option setting allows one to specify maximum number of redirects to follow.
+\item HTTP/1.1 4XX. This is a broken link, usually caused by the client side. We do not process the link. But we need to remember this link has been visited.
+\item HTTP/1.1 5XX. This is also a broken link, usually caused by server internal error. We are not able to process the link. But again need to remember this link has been visited.
+\end{itemize}
+
+After the response status code line, the web server uses http response headers to send meta information in different fields about the web resource content it sends to the client. One of the fields is ``Content-Type''. For the purpose of the lab, we are only interested in two types of Content-Type. One is the \code{text/html}, which is a hyper text file where we find more URLs. The other one is the \code{image/png} which is a PNG image that we look for. You will process the following two cases of Content-Type:
+\begin{itemize}
+\item Content-Type: text/html
+\item Content-Type: image/png
+\end{itemize}
+The http header call back function of curl allows us to process all the header responses from the server.
+Another way is to use \code{curl\_easy\_getinfo} function to obtain a specific header information\footnote{Only standardized headers are supported. User defined headers such as those starting with X- are not supported.}. For example, with the second parameter of the function setting to \code{CURLINFO\_CONTENT\_TYPE}, we obtain the content type header information.
+
+As you may recall from previous lab, the lab server uses an HTTP response header that has the format of ``X-Ece252-Fragment: $M$'' where $M \in [0, 49]$ to tell which image segment it sends to the client. If you are only interested in finding the PNG image segments that the lab web server has, then this piece of information is useful.
+
+After all the response headers are sent, the server sends out the actual contents of the web resource in the message body. The write call back function of curl allows us to process this piece of information. 
+\subsection{Programming Tips}
+You will need a number of lists to keep track of different sets of URLs. One list is for the URLs frontier, which contains to-be-visited URLs. One list is for recording all the URLs that have been visited. Another list is for the PNG URLs that have been found. To crawl the web using multiple threads, these lists are shared between threads. Hence you need to synchronize them. Some lists can only be accessed by one thread both when reading and writing. Some lists may be accessed by multiple threads when reading, but only one thread when writing.
+
+Another subtle difficulty is to know when to terminate the program. The program should terminate either when there are no more URLs in the URLs frontier or the user specified number of PNG URLs have been found. You may need some shared counters to keep track of information such as how many PNG URLs have been found and how many threads are waiting for a new URL.
+
+If an URL has been visited already, then we do not want to visit it again. So a search of visited-URLs list is needed. Hashing will make the search very effective and you may consider using a hash table to represent this already-visited list. The glibc has hash table API (\code{man hsearch(3)}).
+
+\section{Deliverables}
+\subsection{Pre-lab deliverables}
+\label{sec:lab4-pre-lab-deliverable}
+Create a single-threaded implementation of the \verb+findpng2+ command. The \verb+-v+ option implementation is not required for pre-lab. We will test the pre-lab with \verb+-t 1+ and \verb+-m NUM+ where \verb+NUM >= 0+. Pre-lab is due by the time that your scheduled lab sessions starts. No late submission of pre-lab is accepted. Grace days are not applicable to pre-lab submissions. The following are the steps to create your pre-lab deliverable submission.
+\begin{itemize}
+\item Create a directory and name it \verb+lab4-pre+.
+\item Put the entire source code with a Makefile under the directory \verb+lab4-pre+. The Makefile default target is \verb+findpng2+. That is command \verb+make+ should generate the \verb+findpng2+ executable file. We also expect that command \verb+make clean+ will remove the object code and the default target. That is the \verb+.o+ files and the two executable files should be removed.
+\item Use \verb+zip+ command to zip up the contents of lab4-pre directory and name it lab4-pre.zip. We expect \verb+unzip lab4-pre.zip+ will produce a \verb+lab4-pre+ sub-directory in the current working directory and under the \verb+lab4-pre+ sub-directory is your source code and the Makefile.
+\end{itemize}
+Submit the \verb+lab4-pre.zip+ file to Lab4 Pre-lab Dropbox in Learn.
+
+\subsection{Post-lab Deliverables}
+\label{sec:lab4:postlab}
+Put the following items under a directory named lab4:
+%Submit a compressed archive file that contains the following:
+\begin{enumerate}
+\item All the source code and a Makefile. The Makefile default target is \verb+findpng2+ executable file. That is command \verb+make+ should generate the \verb+findpng2+ executable file. We also expect that the command \verb+make clean+ will remove the object code and the default target. That is the \verb+.o+ files and the executable file should be removed.
+\item A timing result .csv file named lab4\_hostname.csv 
+  which contains the timing results by running the findpng2 on a server whose name is hostname. For example, \verb+lab4_eceubuntu1.csv+ means findpng2 was executed on the server eceubuntu1 and the file contains the timing results.
+  The first line of the file is the header of the timing result table. The rest of the rows are the timing result command line argument values and the timing results. The columns of the .csv file from left to right are values of $T$ (the number of threads), $M$ (the number of unique PNG links to search for) and $TIME$ (the corresponding findpng2 average execution time). We have an example .csv file in the starter code folder named \verb+lab4_eceubuntu1.csv+ for illustration purpose.
+
+  Run your findpng2 on eceubuntu1. Record the average timing measurement data for the $(T, M)$ values shown in Table \ref{tb_timing_lab4} for a particular host. Note that for each given $(T, M)$ value in the table, you need to run the program $n$ times and compute the average time. We recommend $n=5$.
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+T     & M    & Time \\ \hline
+
+1 &    1 &    \\ \hline
+1 &    10 &    \\ \hline
+1 &    20 &    \\ \hline
+1 &    30 &    \\ \hline
+1 &    40 &    \\ \hline
+1 &    50 &    \\ \hline
+1 &    100 &    \\ \hline
+10 &    1 &    \\ \hline
+10 &    10 &    \\ \hline
+10 &    20 &    \\ \hline
+10 &    30 &    \\ \hline
+10 &    40 &    \\ \hline
+10 &    50 &    \\ \hline
+10 &    100 &    \\ \hline
+20 &    1 &    \\ \hline
+20 &    10 &    \\ \hline
+20 &    20 &    \\ \hline
+20 &    30 &    \\ \hline
+20 &    40 &    \\ \hline
+20 &    50 &    \\ \hline
+20 &    100 &    \\ \hline
+
+\end{tabular}
+\caption{Timing measurement data table for given $(T, M)$ values.}
+\label{tb_timing_lab4}
+\end{center}
+\end{table}
+\end{enumerate}
+Use \verb+zip+ command to archive and compress the contents of lab4 directory and name it \verb+lab4.zip+. We expect the command \verb+unzip lab4.zip+ will produce a \verb+lab4+ sub-directory in the current working directory and under the \verb+lab4+ sub-directory we will find your source code, the Makefile and the lab4\_hostname.csv file.
+
+\section{Marking Rubric}
+
+Table \ref{tb_lab4_rubric} shows the rubric for marking the lab.
+
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|p{2cm}|p{2cm}|p{9cm}|}
+\hline
+Points & Sub-points &Description  \\ \hline
+25     &    & Pre-lab      \\ \hline
+       & 5  & \verb+Makefile+ correctly builds and cleans \\ \hline
+       & 20 & Implementation of single-threaded \verb+findpng2+ \\ \hline
+75     &       & Post-lab \\ \hline
+       & 5     & Makefile correctly builds and cleans \\ \hline
+       & 70    & Implementation of multi-threaded \verb+findpng2+ \\ \hline
+\end{tabular}
+\caption{Lab4 Marking Rubric}
+\label{tb_lab4_rubric}
+\end{center}
+\end{table}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main_book"
+%%% End:

@@ -1,0 +1,188 @@
+\chapter{Multi-threaded Programming with Blocking I/O}
+\label{ch2_pthreads}
+
+\section{Objectives}
+This lab is to learn about and gain practical experience in multi-threaded programming in a general Linux environment. A single-thread implementation using blocking I/O to request a resource across the network is provided. Students are asked to reduce the latency of this operation by sending out multiple requests simultaneously to different machines by using the \verb+pthreads+ library. After this lab, students will have a good understanding of
+\begin{itemize}
+  \item  how to design and implement a multi-threaded program by using the \verb+pthreads+ library; and
+  \item  the role mutli-threading plays in reducing the latency of a program.
+\end{itemize}
+
+\section{Starter Files}
+The starter files are on GitHub at url: \url{http://github.com/yqh/ece252/tree/master/lab2/starter}.
+It contains the following sub-directories where we have example code to help you get started:
+\begin{itemize}
+    \item the \href{http://github.com/yqh/ece252/tree/master/lab2/starter/cURL}{cURL} demonstrates how to use cURL to fetch an image segment from the lab web server;
+    \item the \href{http://github.com/yqh/ece252/tree/master/lab2/starter/fn_ptr}{fn\_ptr} demonstrates how C function pointers work; 
+    \item the \href{http://github.com/yqh/ece252/tree/master/lab2/starter/getopt}{getopt} demonstrates how to parse command line options;
+    \item the \href{http://github.com/yqh/ece252/tree/master/lab2/starter/pthreads}{pthreads} demonstrates how to create two threads where each thread takes multiple input parameters and return multiple values; and
+    \item the \href{http://github.com/yqh/ece252/tree/master/lab2/starter/times}{times} provides helper functions to profile program execution times.
+\end{itemize}
+Using the code in the starter files is permitted and will not be considered as plagiarism.
+
+\section{Pre-lab Preparation}
+Read the entire lab2 manual to understand what the lab assignment is about. Build the starter code and run the executables. Work through the code and understand what they do and how they work. Create a single-threaded implementation of the \verb+paster+ command (see \ref{sec:man_paster_par}).
+Finish the pre-lab deliverable (see Section \ref{sec:lab2-pre-lab-deliverable}).
+
+%\section{Warm-up Exercises}
+
+\section{Lab Assignment}
+\subsection{Problem Statement}
+\label{sec:lab2_problem_statement}
+In the previous lab, a set of horizontal strips of a whole PNG image file were stored on a disk and you were asked to restore the whole image from these strips. In this lab, the horizontal image segments are on the web. I have  three $400 \times 300$ pictures (whole images) on three web servers. When you ask a web server to send you a picture, the web server crops the picture into fifty
+$400 \times 6$ equally sized horizontal strips
+\footnote{Each image segment will have a size less than 8KB.}. The web server assigns a sequence number to each strip from top to bottom starting from 0 and increments by 1
+\footnote{The first horizontal strip has a sequence number of 0, the second strip has a sequence number of 1. The sequence number increments by 1 from top to bottom and the last strip has a sequence number of 49.}. Then the web server sleeps for a random time and then sends out a random strip in a simple PNG format that we assumed in lab1. That is the horizontal strip PNG image segment consists one IHDR chunk, one IDAT chunk and one IEND chunk (see Figure \ref{fig_png_file_format}). The PNG segment is an 8-bit RGBA/color image (see Table \ref{lab1:tb_IHDR_Data} for details). The web server uses an HTTP response header that includes the sequence number to tell you which strip it sends to you. The HTTP response header has the format of ``X-Ece252-Fragment: $M$'' where $M \in [0, 49]$. To request a random horizontal strip of picture $N$, where $N\in[1,3]$, use the following URL:
+\verb+http://machine:2520/image?img=N+, where
+
+\texttt{machine} is one of the following:
+\begin{itemize}
+\item \texttt{ece252-1.uwaterloo.ca},
+\item \texttt{ece252-2.uwaterloo.ca}, and 
+\item \texttt{ece252-3.uwaterloo.ca}~.
+\end{itemize}
+
+For example, when you request data from the following URL: \\
+\verb+http://ece252-1.uwaterloo.ca:2520/image?img=1+,  \\
+you may receive a random horizontal strip of picture 1. Assume this random strip you receive is the third horizontal strip (from top to bottom of the original picture), the received HTTP header will contain ``X-Ece252-Fragment: 2``. The received data will be the image segment in PNG format.
+You may use the browser to view a random horizontal strip of the PNG image the server sends. You will notice the same URL displays a different image strip every time you hit enter to refresh the page. Each strip has the same dimensions of $400 \times 6$ pixels and is in PNG format. 
+
+Your objective is to request all horizontal strips of a picture from the server and then concatenate these strips to restore the original picture. Because every time the server sends a random strip, if you use a loop to keep requesting a random strip from a server, you may receive the same strip multiple times before you receive all the fifty distinct strips. Due to the randomness, it will take a variable amount of time to get all the strips you need to restore the original picture.
+
+\subsection{Requirements}
+
+Use the \verb+pthreads+ library, design and implement a threaded program to request all image segments from a web server by using blocking I/O and concatenate these segments together to form the whole image.
+
+The provided starter code \verb+main_write_header_cb.c+ under \verb+cURL+ directory is a single-threaded implementation which uses \verb+libcurl+ blocking I/O function \verb+curl_easy_peform()+to fetch one random horizontal strip of picure $1$ from one of the web servers into memory and then output the received image segment to a PNG file. Your  program should repeatedly fetch the image strips until you have them all. Recall because every time you get a random strip, the amount of time to get all the fifty distinct strips of a picture varies.
+
+A very inefficient approach is to use a single-threaded loop to keep fetching until you get all fifty distinct strips of a picture and paste them together. You will notice the blocking I/O operation is the main cause of the latency. Your program will be blocked while each time waiting for the \verb+curl_easy_perform()+ to finish. One way to reduce the latency of this operation is to send out multiple blocking I/O requests simultaneously (to different machines) by using \verb+pthreads+. You will use this approach to reduce the latency in this lab
+\footnote{Asynchronous I/O is another method to reduce the latency and we will explore it in lab5.}. 
+
+Your program should create as many threads as specified by the user command line input, and distribute the work among the three provided servers. Make sure all of your library (standard glibc and libcurl) calls are {\em thread-safe} (for glibc, e.g. \code{man 3 printf} to look at the documentation). Name your executable as \verb+paster+. The behaviour of the command \verb+paster+ is given in the following section.
+
+The provided three pictures on the server are for you to test your program. Your program should work for all these pictures. You may want to reuse part of your lab1 code to paste the received image segments together. 
+
+\subsection{Man page of paster}
+\label{sec:man_paster_par}
+
+\subsubsection*{NAME}
+\begin{itemize}
+    \item[]{\bf paster} - pasting downloaded png files together
+        by using multiple threads and blocking I/O through libcurl.
+\end{itemize}
+
+\subsubsection*{SYNOPSIS}
+
+\begin{itemize}
+\item []{\bf paster} [OPTION]...
+\end{itemize}
+
+\subsubsection*{DESCRIPTION}
+
+\begin{itemize}
+\item []
+  With no options, the command retrieves all horizontal image segments of picture 1 from \url{http://ece252-1.uwaterloo.ca:2520/image?img=1} and paste all distinct segments received from top to bottom in the order of the image segment sequence number. Output the pasted image to disk and name it all.png.  
+\item[] {\bf -t}=NUM
+  \begin{itemize}
+  \item[] create NUM threads simultaneously requesting random image segments from multiple lab web servers. When this option is not specified, assumes a single-threaded implementation.
+  \end{itemize}
+\item[] {\bf -n}=NUM
+  \begin{itemize}
+  \item[] request a random image segment of picture NUM from the web server. Valid values are 1, 2 and 3. Default value is set to 1.
+  \end{itemize}
+\end{itemize}
+\subsubsection*{OUTPUT FORMAT}
+\begin{itemize}
+\item[] The concated image is output to a PNG file with the name of all.png. 
+\end{itemize}
+
+\subsubsection*{EXAMPLES}
+\begin{itemize}
+\item[]
+\begin{verbatim}
+paster -t 6 -n 2
+\end{verbatim}
+Use 6 threads to simultaneously download all image segments of picture 2 from multiple web servers and concatenate these segments to restore picture 2. Output the concatenated picture to disk and name it all.png. 
+\end{itemize}
+
+\subsubsection*{EXIT STATUS}
+\begin{itemize}
+\item[]
+  {\bf paster} exits with status 0 upon success and nonzero upon error.
+\end{itemize}
+
+\section{Programming Tips}
+\label{sec:code-walk-through}
+
+\subsection{The libcurl API}
+Though the image segment download code using \verb+libcurl+ is provided, familiarize yourself with the libcurl API will help you understand the provided code. The libcurl documentation URL is \url{https://curl.haxx.se/libcurl}. The man page of each function in the libcurl API can be found at URL \url{https://curl.haxx.se/libcurl/c/allfuncs.html}.
+
+Note the provided example \verb+cURL+ code downloads the received image segment to memory and then output the data in memory to a PNG file. The output to a PNG file is just to make it easier for you to view the downloaded image segment to help you understand the example code. However your \verb+paster+ program does not need to output each segment received to a file. An efficient way (i.e. without unnecessary file I/O) is to directly use the received image segment data in memory instead of outputting the data to a file first and then reading the data back from file into memory. 
+
+
+\subsubsection{Thread Safety}
+\label{sec:libcurl-thread-safety}
+
+Libcurl is thread safe but there are a few exceptions. The man page of libcurl-thread(3) (see \url{https://curl.haxx.se/libcurl/c/threadsafe.html}) is the ultimate reference. We re-iterate key points from libcurl manual that are relevant to this lab as follows:
+\begin{itemize}
+\item The same libcurl handle should not be shared in multiple threads. 
+\item The libcurl is thread safe but does not have internal thread synchronization mechanism. You will need to take care of the thread synchronization.
+\end{itemize}
+
+
+\subsection{The pthreads API}
+\label{sec:pthreads}
+The \verb+pthreads(7)+ man page gives an overview of POSIX threads and should be read. The SEE ALSO section near the bottom of the man page lists functions in the API. The man pages of \verb+pthread_create(3)+, \verb+pthread_join(3)+ and \verb+pthread_exit(3)+ provide detailed information of how to create, join and terminate a thread.
+
+\subsubsection{The pthread Memory Leak Bug}
+\label{sec:pthread-memory-leak}
+
+There is a known memory leak bug related to \verb+pthread_exit()+. Please refer to  \url{https://bugzilla.redhat.com/show_bug.cgi?id=483821} for details. Using \verb+return()+ instead of \verb+pthread_exit()+ will avoid the memory leak bug.
+
+\section{Deliverables}
+
+\subsection{Pre-lab deliverables}
+\label{sec:lab2-pre-lab-deliverable}
+Create a single-threaded implementation of the \verb+paster+ command. Pre-lab is due by the time that your scheduled lab sessions starts. No late submission of pre-lab is accepted. Grace days are not applicable to pre-lab submissions. The following are the steps to create your pre-lab deliverable submission.
+\begin{itemize}
+\item Create a directory and name it \verb+lab2-pre+.
+\item Put the entire source code with a Makefile under the directory \verb+lab2-pre+. The Makefile default target is \verb+paster+. That is command \verb+make+ should generate the \verb+paster+ executable file. We also expect that command \verb+make clean+ will remove the object code and the default target. That is the \verb+.o+ files and the two executable files should be removed.
+\item Use \verb+zip+ command to zip up the contents of lab2-pre directory and name it lab2-pre.zip. We expect \verb+unzip lab2-pre.zip+ will produce a \verb+lab2-pre+ sub-directory in the current working directory and under the \verb+lab2-pre+ sub-directory is your source code and the Makefile.
+\end{itemize}
+Submit the \verb+lab2-pre.zip+ file to Lab2 Pre-lab Dropbox in Learn.
+\subsection{Post-lab Deliverables}
+\label{sec:lab2-post-lab-deliverable}
+Create a multi-threaded implementation of the \verb+paster+ command.
+The following are the steps to create your post-lab deliverable submission.
+\begin{itemize}
+\item Create a directory and name it lab2.
+\item Put the entire source code with a Makefile under the directory lab lab2. The Makefile default target is \verb+paster+. That is command \verb+make+ should generate the \verb+paster+ executable file. We also expect that command \verb+make clean+ will remove the object code and the default target. That is the \verb+.o+ files and the executable file should be removed.
+\item Use \verb+zip+ command to zip up the contents of lab2 directory and name it lab2.zip. We expect \verb+unzip lab2.zip+ will produce a \verb+lab2+ sub-directory in the current working directory and under the \verb+lab2+ sub-directory is your source code and the Makefile.
+\end{itemize}
+Submit the \verb+lab2.zip+ file to Lab2 Dropbox in Learn.
+
+
+\section{Marking Rubric}
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|p{2cm}|p{2cm}|p{9cm}|}
+\hline
+Points & Sub-points &Description  \\ \hline
+30     &    & Pre-lab      \\ \hline
+       & 5  & \verb+Makefile+ correctly builds and cleans \\ \hline
+       & 25 & Implementation of single-threaded \verb+paster+ \\ \hline
+70     &       & Post-lab \\ \hline
+       & 5     & Makefile correctly builds and cleans \\ \hline
+       & 65    & Implementation of multi-threaded \verb+paster+ \\ \hline
+\end{tabular}
+\caption{Lab2 Marking Rubric}
+\label{tb_lab2_rubric}
+\end{center}
+\end{table}
+
+Table \ref{tb_lab2_rubric} shows the rubric for marking the lab.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main_book"
+%%% End:

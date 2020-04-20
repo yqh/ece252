@@ -1,0 +1,286 @@
+\chapter{Interprocess Communication and Concurrency}
+
+\section{Objectives}
+
+This lab is to learn about, and gain practical experience in 
+interprocess communication and concurrency control in a general Linux environment.
+%Message passing and shared memory are two methods for different processes to communications .
+%For message passing, processes do not share any memory. The operating system message passing facility takes care of shared memory access within its kernel space. 
+%For shared memory, processes need to take care of the shared memory conflicting operations. 
+Shared memory allows multiple processes to share a given region of memory. It is the fastest form for different processes to communicate. Processes need to take care of the shared memory conflicting operations.
+The operating system provides concurrency control facility such as semaphore API.
+ 
+%The choice of implementing the interprocess communication by message passing or shared memory results in different performance. This lab compares the performance of these two different methods by solving a producer consumer problem.
+
+After this lab, students will be able to
+\begin{itemize}
+\item design and implement a multi-processes concurrent program by using the producer-consumer pattern;
+\item program with
+        \begin{itemize}
+	\item the \verb+fork()+ system call to create a new child process;
+	\item the \verb+wait()+ family system calls to  obtain
+	          the status-change information of a child process;
+        \item the Linux shared memory API to allow processes to communicate; and
+        \item the Linux semaphore facility to synchronize processes.
+	%\item the POSIX message queue facility (\verb+<mqueue.h>+)  for inter-process communication;
+        \end{itemize}              
+\end{itemize}
+
+\section{Starter Files}
+The starter files are on GitHub at url: \url{http://github.com/yqh/ece252/tree/master/lab3/starter}.It contains the following sub-directories where we have example code to help you get started:
+\begin{itemize}
+\item the \href{http://github.com/yqh/ece252/tree/master/lab3/starter/fork}{fork} has example code of creating multiple processes and time the total execution time;
+  it also demonstrate how a zombie process is created when the parent process does not call \code{wait} family calls;
+%\item the \href{http://github.com/yqh/ece252/tree/master/lab3/starter/mqueue}{mqueue} has example code of using POSIX queue API;
+\item the \href{http://github.com/yqh/ece252/tree/master/lab3/starter/sem}{sem} has example code of using POSIX semaphore shared between processes;
+\item the \href{http://github.com/yqh/ece252/tree/master/lab3/starter/shm}{shm} has example code of using System V shared memory; and
+\item the \href{http://github.com/yqh/ece252/tree/master/lab3/starter/cURL_IPC}{cURL\_IPC} has example code of using a shared memory region as a cURL call back function buffer to download one image segment from a lab server by the child process and writing the downloaded image segment to a file by the parent process; and
+\item the \href{http://github.com/yqh/ece252/tree/master/lab3/starter/tools}{tools} has a shell script to compute statistics of timing data and a shell script to clean IPC facilities.
+%\item the \href{http://github.com/yqh/ece252/tree/master/lab3/starter/util}{util} has implementation of functions for PNG image processing;
+\end{itemize}
+The \href{http://github.com/yqh/ece252/tree/master/lab3/starter/lab3_eceubuntu1.csv}{lab3\_eceubunt1.csv} is the template file that you will need for submitting timing results (see Section \ref{sec:lab3:postlab}).
+\section{Pre-lab Preparation}
+Read the entire lab3 manual to understand what the lab assignment is about. Build and run the starter code to see what they do. You should work through the provided starter code to understand how they work. The following activities will help you to understand the code.
+
+\begin{enumerate}
+\item Execute \code{man fork} to read the man page of \verb+fork(2)+.
+%\item Execute \code{man 3 exec} to read the man page of \verb+exec(3)+ family library calls.
+\item Execute \code{man 2 wait} to read the man page of \verb+wait(2)+ family system calls.
+\item Execute \code{man ps} to read the man page of the \verb+ps+ command.
+%\item Execute \code{man mq\_overview} to read the man page of POSIX mqueue API overview.
+\item Execute \code{man shm\_overview} to read Linux man page of POSIX shared memory API overview. At the bottom of the man page, it talks about system V shared memory facilities. Read the corresponding man pages of the system V shared memory API.
+\item Execute \code{man sem\_overview} to read Linux man page of POSIX semaphore API overview.
+\item Execute \code{man ipcs} and \code{man ipcrm} to read the man pages of Linux IPC facility commands. You will find the \code{-s} and the \code{-m} options are helpful in this lab.  
+\end{enumerate}
+Linux man pages are also available on line at \url{https://linux.die.net/}.
+
+Finish the pre-lab deliverable (see Section \ref{sec:lab3-pre-lab-deliverable}).
+The main data structure to represent the fixed size buffer is a queue. A circular queue is one commonly seen implementation of a fixed size buffer if FIFO is required. A stack is another implementation if LIFO is required. You can either create the data structure yourself or use one from an existing library. If you want to explore the C library queue facilities, check out the man pages of insque(3), remque(3) and queue(3). There are example code at the end of the man pages.
+
+\section{Lab Assignment}
+\subsection{The Producer Consumer Problem}
+A producer-consumer problem is a classic multi-tasking problem. There are one or more tasks that create data and they are referred to as {\em producers}. There are one or more tasks that use the data and they are referred to as {\em consumers}. We will have a system of $P$ producers and $C$ consumers. Producers and consumers do not necessarily complete their tasks at the same speed. How many producers should be created and how many consumers should be created to achieve maximum latency improvement\footnote{You probably have already noticed in lab2 that once the number of threads reaches a certain number, you reach the maximum performance improvement.}? What if the buffer receiving the produced data has a fixed size? Another problem to think about is that when we fix the number of producers and consumers, how big the bounded buffer size should be? Is it true the bigger the buffer size is, the more latency improvement we will get, or there is a limit beyond which the bigger buffer size will not bring any further latency improvement? We will do some experiments to answer these questions by solving a similar problem that we solved in lab2 with some additional assumptions.
+
+In lab2 we used multi-threading to download image segments from the web server and then paste all the segments together. This falls into the unbounded buffer producer consumer problem pattern. We can let producers download the image segments (i.e. creating data) and let consumers extract the image pixel data information (i.e. processing data) for future processing. One easy solution to lab 2 (also commonly seen) is to have one thread that does both the producer and the consumer jobs. This implicitly assumes that the number of producers and consumers are equal. But what if data creation and data processing are running at different speeds\footnote{For example, the data processing part could be more involved such as doing some image transformation. It could also be that the network bandwidth is tight or the lab server is slow so that it takes long to download the image segment.}? It may take more time to download data than to process data or vice versa. Then having the same number of producers and consumers are not optimal. In addition, in lab2, we did not restrict the receiving data buffer size. In a real world, resources are limited and the situation that a fixed size of buffer space to receive the incoming data is more realistic. In this lab, we have the additional constraint that the buffer to receive the image segments from the web server has a fixed size. So the problem we are solving is a bounded buffer producer-consumer problem\footnote{Here is another producer consumer problem example: you can think of the producer as a keyboard device driver and the consumer as the application wishing to read keystrokes from the keyboard; in such a scenario the person typing at the keyboard may enter more data than the consuming  program wants, or conversely, the consuming program may have to wait  for the person to type in characters. This is, however, only one of many cases where producer/consumer scenarios occur, so do not get too tied to this particular usage scenario.}.
+
+
+%In lab2, we pasted the received image segments together to restore the original image. In this lab, we want to transform the image segments received before pasting them together. I have provided a function \code{convert()} in the starter code \verb+util+ sub-directory to do the transformation. Assume you just modify your lab2 code so that after a thread downloading the image segment, it calls the \verb+convert()+ routine and then hand over the transformed image data to a thread that does the pasting.
+
+% Do we need to grow memory as number of threads grow? Try to find minimum number of threads we need to reach the max speed up. Yes it is random, but statistically there is a limit. Can we improve the efficiency indefinitely? What about the memory footprint? 
+
+\subsection{Problem Statement}
+We are still solving an image concatenation problem. The image strips are the same ones that you have seen in lab2. In lab2, the lab web server sleeps a random seconds before it sends a random horizontal strip of an image to the client. In this lab, we have a different server running at port 2530 which sleeps for a fixed time before it sends a specific image strip requested by the client. The deterministic sleep time in the server is to simulate the time to produce the data. The image format sent by the server is still the simple PNG format (see Figure \ref{fig_png_file_format}). The PNG segment is still an 8-bit RGBA/color image (see Table \ref{lab1:tb_IHDR_Data} for details). The web server still uses an HTTP response header that includes the sequence number to tell you which strip it sends to you. The HTTP response header has the format of ``X-Ece252-Fragment: $M$'' where $M \in [0, 49]$. To request a  horizontal strip with sequence number $M$ of picture $N$, where $N\in[1, 3]$, use the following URL:
+\verb+http://machine:2530/image?img=N&part=M+, where
+
+\texttt{machine} is one of the following:
+\begin{itemize}
+\item \texttt{ece252-1.uwaterloo.ca},
+\item \texttt{ece252-2.uwaterloo.ca}, and 
+\item \texttt{ece252-3.uwaterloo.ca}~.
+\end{itemize}
+
+For example, when you request data from
+\url{http://ece252-1.uwaterloo.ca:2530/image?img=1\&part=2}, 
+you will receive a horizontal image strip with sequence number 2 of picture 1 . The received HTTP header will contain ``X-Ece252-Fragment: 2``. The received data will be the image segment in PNG format.
+You may use the browser to view a horizontal strip of the PNG image the server sends. Each strip has the same dimensions of $400 \times 6$ pixels and is in PNG format. 
+
+Your objective is to request all horizontal strips of a picture from the server and then concatenate these strips in the order of the image sequence number from top to bottom to restore the original picture as quickly as possible for a given set of given input arguments specified by the user command. You should name the concatenated image as \verb+all.png+ and output it to the current working directory.
+
+There are three types of work involved. The first  is to download the image segments. The second is to process downloaded image data and copy the processed data to a global data structure for generating the concatenated image. The third is to generate the concatenated all.png file once the global data structure that holds the concatenated image data is filled.
+
+The producers will make requests to the lab web server and together they will fetch all 50 distinct image segments. Each time an image segment arrives, it gets placed into a fixed-size buffer of size $B$, 
+% \footnote{If an image segment has already been received before, then the producer should discard it. We do not want to deposit duplicated image segments into the buffer. This implies that you need to establish a mechanism to keep track of which image segment has already been received among producers.}
+shared with the consumer tasks. When there are $B$ image segments in the buffer, producers stop producing. When all 50 distinct image segments have been downloaded from the server, all producers will terminate. That is the buffer can take maximum $B$ items, where each item is an image segment. The horizontal image strips sent out by the lab servers are all less than $10,000$ bytes. 
+
+Each consumer reads image segments out of the buffer, one at a time, and then sleeps for $X$ milliseconds specified by the user in the command line\footnote{This is to simulate data processing takes time.}. Then the consumer will process the received data. The main work is to validate the received image segment and then inflate the received IDAT data and copy the inflated data into a proper place inside the memory. 
+%to change the opacity of the image and then output the image segment to the disk with a naming convention of \verb+part<seq>.png+, where \verb+seq+ is the image segment sequence number
+%\footnote{For example, image segment with sequence number 2 will generate part2.png file after the convert() routine changes its opacity.}. 
+
+Given that the buffer has a fixed size, $B$, and assuming that $B < 50$, it is possible for the producers to have produced enough image segments that the buffer is filled before any consumer has read any data.  If this happens, the producer is blocked, and must wait till there is at least one free spot in the buffer.  
+
+Similarly, it is possible for the consumers to read all of the data from the buffer, and yet more data is expected from the producers.  In such a case, the consumer is blocked, and must wait for the producers to deposit one or more additional image segments into the buffer.  
+
+Further, if any given producer or consumer is using the buffer, all other consumers and producers must wait, pending that usage being finished.  That is, all access to the buffer represents a critical section, and must be protected as such.
+
+The program terminates when it finishes outputting the concatenated image segments in the order of the image segment sequence number to a file named all.png.
+
+Note that there is a subtle but complex issue to solve. Multiple producers are writing to the buffer, thus a mechanism needs to be established to determine whether or not some producer has placed the last image segment into the buffer. Similarly, multiple consumers are reading from the buffer, thus a mechanism needs to be established to determine whether or not some consumer has read out the last image segment from the buffer
+\footnote{Due to network transmission has randomness, the order of image segments placed in the buffer may not necessarily be the same order that they have been requested by the producers. The last image segment in the buffer may not necessarily be the image segment with the biggest sequence number. We do not want to request the same image segment twice since this will bring down the performance, so both producers and consumers know the buffer in total will serve 50 image segments.}. 
+
+\subsection*{Requirements}
+
+Let
+$B$ be the buffer size,  
+$P$ be the number of producers,
+$C$ be the number of consumers,
+$X$ be the number of milliseconds that a consumer sleeps before it starts to process the image data, and
+$N$ be the image number you want to get from the server.
+The producer consumer system is called with the execution command syntax of:
+\begin{verbatim}
+    ./paster2 <B> <P> <C> <X> <N>
+\end{verbatim}
+
+The command will execute per the above description and will then print out the time it took to execute. You should measure the time before you create the first process and the time after the last image segment is consumed and the concatenated all.png image is generated. Use the \code{gettimeofday} for time measurement (see starter code under the \verb+fork+ directory) and terminal screen for display. 
+Thus your last line of output should look like:
+\begin{verbatim}
+    paster2 execution time: <time in seconds> seconds
+\end{verbatim}
+
+
+For a set of given \verb+(B, P, C, X, N)+  tuple values, run your application and measure the time it takes. Note for a give value of \verb+(B, P, C, X, N)+, you need to run multiple times to compute the average execution time in a general Linux environment.
+
+Implement each producer/consumer as an individual process. You start your program with one process which then forks multiple producer processes and multiple consumer processes. The parent process will wait for all the child processes to terminate and then start to process the data structure that holds the concatenated image data and create the final all.png file. Aside from the parent process, the $P$ producer processes that download the image segments and $C$ consumer processes that process the image segment data, you are allowed to create extra processes to do other type of work when you see a need. Just keep in mind that having more processes is not cost free. Hence a good implementation will try to minimize system resource usage unless extra resource usage will bring meaningful improvement.
+
+
+Use shared memory for processes to communicate. You may use System V %or POSIX
+shared memory API. The bounded buffer is a shared data structure such as a circular queue that all processes share access to. Note that shared memory access needs to be taken care of at the application level. The POSIX semaphore are to be used for concurrency control.
+
+\subsection*{A Sample Program Run}
+The following is an example execution of paster2 given $(B, P, C, X, N) = (2, 1, 3, 10, 1)$. In this example, the bounded buffer size is 2. We have one producer to download the image segments and three  consumers to process the downloaded data. Each consumer sleeps 10 milliseconds before it starts to process the data. And the image segments requested are from image 1 on lab servers.
+\begin{verbatim}
+[eceubuntu1:]./paster2 2 1 3 10 1
+paster2 execution time: 100.45 seconds
+\end{verbatim}
+Note that due to concurrency, your output may not be exactly the same as the sample output above. Also depending on the implementation details and the platform where the program runs, the sample system execution time is only for illustration purpose. The exact paster2 execution time value your program produces will be different than the one shown in the sample run.
+
+%\section{Programming Tips}
+%\label{sec:lab3-prog-tips}
+
+\section{Deliverables}
+\subsection{Pre-lab Deliverables}
+\label{sec:lab3-pre-lab-deliverable}
+Create an implementation of the \verb+paster2+ command that can work with a single producer processes and a single consumer process. To be more specific, your \verb+paster2+ should be able to handle input parameter $(B, P, C, X, N)$, where $B \ge 1$, $P = 1$, $C = 1$, $X \ge 0$, and $N = 1, 2, 3$. Pre-lab is due by the time that your scheduled lab sessions starts. No late submission of pre-lab is accepted. Grace days are not applicable to pre-lab submissions. The following are the steps to create your pre-lab deliverable submission.
+\begin{itemize}
+\item Create a directory and name it \verb+lab3-pre+.
+\item Put the entire source code with a Makefile under the directory \verb+lab3-pre+. The Makefile default target is \verb+paster2+. That is command \verb+make+ should generate the \verb+paster2+ executable file. We also expect that command \verb+make clean+ will remove the object code and the default target. That is the \verb+.o+ files and the two executable files should be removed.
+\item Use \verb+zip+ command to zip up the contents of lab3-pre directory and name it lab3-pre.zip. We expect \verb+unzip lab3-pre.zip+ will produce a \verb+lab3-pre+ sub-directory in the current working directory and under the \verb+lab3-pre+ sub-directory is your source code and the Makefile.
+\end{itemize}
+Submit the \verb+lab3-pre.zip+ file to Lab3 Pre-lab Dropbox in Learn.
+
+\subsection{Post-lab Deliverables}
+\label{sec:lab3:postlab}
+Put the following items under a directory named lab3:
+%Submit a compressed archive file that contains the following:
+\begin{enumerate}
+\item All the source code and a Makefile. The Makefile default target is \verb+paster2+ executable file. That is command \verb+make+ should generate the \verb+paster2+ executable file. We also expect that the command \verb+make clean+ will remove the object code and the default target. That is the \verb+.o+ files and the executable files should be removed.
+\item A timing result .csv file named lab3\_hostname.csv 
+  which contains the timing results by running paster2 on a server whose name is hostname. For example, \verb+lab3_eceubuntu1.csv+ means paster2 was executed on the server eceubuntu1 and the file contains the timing results.
+  The first line of the file is the header of the timing result table. The rest of the rows are the timing result command line argument values and the timing results. The columns of the .csv file from left to right are values of $B$, $P$, $C$, $X$, and the corresponding paster2 average execution time. We have an example .csv file in the starter code folder named \verb+lab3_eceubuntu1.csv+ for illustration purpose.
+
+  Run your paster2 on \verb+eceubuntu1+. Record the average timing measurement data for the $(B, P, C, X, N)$ values shown in Table \ref{tb_timing_lab3} for a particular host. Note that for each given $(B, P, C, X, N)$ value in the table, you need to run the program $n$ times and compute the average time. We recommend $n=5$.
+          \begin{table}[h]
+          \begin{center}
+          \begin{tabular}{|c|c|c|c|c|c|}
+          \hline
+ B   & P   & C   & X   & N   &Time   \\ \hline 
+5   & 1   & 1   & 0   & 1   &   \\ \hline
+5   & 1   & 5   & 0   & 1   &   \\ \hline
+5   & 5   & 1   & 0   & 1   &   \\ \hline
+5   & 5   & 5   & 0   & 1   &   \\ \hline
+10   & 1   & 1   & 0   & 1   &   \\ \hline
+10   & 1   & 5   & 0   & 1   &   \\ \hline
+10   & 1   & 10   & 0   & 1   &   \\ \hline
+10   & 5   & 1   & 0   & 1   &   \\ \hline
+10   & 5   & 5   & 0   & 1   &   \\ \hline
+10   & 5   & 10   & 0   & 1   &   \\ \hline
+10   & 10   & 1   & 0   & 1   &   \\ \hline
+10   & 10   & 5   & 0   & 1   &   \\ \hline
+10   & 10   & 10   & 0   & 1   &   \\ \hline
+5   & 1   & 1   & 200   & 1   &   \\ \hline
+5   & 1   & 5   & 200   & 1   &   \\ \hline
+5   & 5   & 1   & 200   & 1   &   \\ \hline
+5   & 5   & 5   & 200   & 1   &   \\ \hline
+10   & 1   & 1   & 200   & 1   &   \\ \hline
+10   & 1   & 5   & 200   & 1   &   \\ \hline
+10   & 1   & 10   & 200   & 1   &   \\ \hline
+10   & 5   & 1   & 200   & 1   &   \\ \hline
+10   & 5   & 5   & 200   & 1   &   \\ \hline
+10   & 5   & 10   & 200   & 1   &   \\ \hline
+10   & 10   & 1   & 200   & 1   &   \\ \hline
+10   & 10   & 5   & 200   & 1   &   \\ \hline
+10   & 10   & 10   & 200   & 1   &   \\ \hline
+5   & 1   & 1   & 400   & 1   &   \\ \hline
+5   & 1   & 5   & 400   & 1   &   \\ \hline
+5   & 5   & 1   & 400   & 1   &   \\ \hline
+5   & 5   & 5   & 400   & 1   &   \\ \hline
+10   & 1   & 1   & 400   & 1   &   \\ \hline
+10   & 1   & 5   & 400   & 1   &   \\ \hline
+10   & 1   & 10   & 400   & 1   &   \\ \hline
+10   & 5   & 1   & 400   & 1   &   \\ \hline
+10   & 5   & 5   & 400   & 1   &   \\ \hline
+10   & 5   & 10   & 400   & 1   &   \\ \hline
+10   & 10   & 1   & 400   & 1   &   \\ \hline
+10   & 10   & 5   & 400   & 1   &   \\ \hline
+10   & 10   & 10   & 400   & 1   &   \\ \hline
+          \end{tabular}
+          \caption{Timing measurement data table for given $(B, P, C, X, N)$ values.}
+          \label{tb_timing_lab3}
+          \end{center}
+          \end{table}
+
+ %         \begin{table}[h]
+ %         \begin{center}
+ %         \begin{tabular}{|c|c|c|c|c|}
+ %         \hline
+ %         B     & P    & C & X    & Time \\ \hline
+ %         1     & 1    & 1 & 100  &      \\ \hline
+ %         1     & 1    & 2 & 100  &      \\ \hline
+ %         2     & 1    & 1 & 100  &      \\ \hline
+ %         2     & 2    & 1 & 100  &      \\ \hline
+ %         2     & 3    & 1 & 100  &      \\ \hline
+ %         2     & 1    & 2 & 100  &      \\ \hline
+ %         2     & 2    & 2 & 100  &      \\ \hline
+ %         2     & 3    & 2 & 100  &      \\ \hline
+ %         2     & 4    & 2 & 100  &      \\ \hline
+ %         2     & 5    & 2 & 100  &      \\ \hline
+ %         2     & 5    & 3 & 100  &      \\ \hline
+ %         2     & 5    & 4 & 100  &      \\ \hline
+ %         4     & 10   & 5 & 100  &      \\ \hline
+ %         8     & 10   & 5 & 100  &      \\ \hline
+ %         16    & 10   & 5 & 100  &      \\ \hline
+ %         \end{tabular}
+ %         \caption{Timing measurement data table for given $(B, P, C, X)$ values.}
+ %         \label{tb_timing_lab3}
+ %         \end{center}
+ %         \end{table}
+\end{enumerate}
+Use \verb+zip+ command to archive and compress the contents of lab3 directory and name it \verb+lab3.zip+. We expect the command \verb+unzip lab3.zip+ will produce a \verb+lab3+ sub-directory in the current working directory and under the \verb+lab3+ sub-directory we will find your source code, the Makefile and the lab3\_hostname.csv file.
+
+\section{Marking Rubric}
+The Rubric for marking is listed in Table \ref{tb_lab3_ipc_rubric}.
+
+\begin{table}[ht]
+\begin{center}
+\begin{tabular}{|p{2cm}|p{2cm}|p{9cm}|}
+\hline
+Points & Sub-points &Description  \\ \hline
+20     &    & Pre-lab      \\ \hline
+       & 5  & \verb+Makefile+\\ \hline
+       & 15 & A partial implementation of \verb+paster2+. The code works correctly with input of $(B, P, C, X, N)$, where $B \ge 1$, $P = 1$, $C = 1$, $X \ge 0$, and $N = 1, 2, 3$. \\ \hline
+80     &       & Post-lab \\ \hline
+       & 5     & \verb+Makefile+ \\ \hline
+       & 75    & Complete implementation of \verb+paster2+ and timing data\\ \hline
+\end{tabular}
+\caption{Lab3 Marking Rubric}
+\label{tb_lab3_ipc_rubric}
+\end{center}
+\end{table}
+
+
+%\begin{table}[ht]
+%\begin{center}
+%\begin{tabular}{|p{2cm}|p{9cm}|}
+%\hline
+%Points & Description \\ \hline
+%10     & Makefile correctly builds and cleans \verb+paster2+\\ \hline  
+%70     & Implementation of \verb+paster2+ \\ \hline
+%20     & Correct timing results in lab3\_hostname.csv file\\ \hline
+%\end{tabular}
+%\caption{Lab3 Marking Rubric}
+%\end{center}
+%\end{table}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "main_book"
+%%% End:
