@@ -1,25 +1,31 @@
 /**
  * @brief: in memory deflation (zip) and inflation (unzip) routines 
- * NOTES: this is based on the zlib example zpipe.c
- *        at https://www.zlib.net/zlib_how.html
+ *
+ * Based on the zlib example zpipe.c at https://www.zlib.net/zlib_how.html
+ *
+ * Modification is
+ * Copyright 2018-2019 Yiqing Huang
+ *
+ * This software may be freely redistributed under the terms of MIT License
  */
 
 #include <stdio.h>
 #include "zutil.h"
 
 /**
- * @brief: deflate in memory data from source to dest 
+ * @brief: deflate in memory data from source to dest.
+ *         The memory areas must not overlap.
  * @param: dest U8* output buffer, caller supplies, should be big enough
  *         to hold the deflated data
- * @param: dest_len, U64* output parameter, length of deflated data
+ * @param: dest_len, U64* output parameter, points to length of deflated data
  * @param: source U8* source buffer, contains data to be deflated
  * @param: source_len U64 length of source data
  * @param: level int compression levels (https://www.zlib.net/manual.html)
- *         Z_NO_COMPRESSION, Z_BEST_SPEED, Z_BEST_COMPRESSION, Z_DEFAULT_COMPRESSION
+ *    Z_NO_COMPRESSION, Z_BEST_SPEED, Z_BEST_COMPRESSION, Z_DEFAULT_COMPRESSION
  * @return =0  on success 
  *         <>0 on error
  * NOTE: 1. the compressed data length may be longer than the input data length,
- *       especially when the input data size is very small.
+ *          especially when the input data size is very small.
  */
 int mem_def(U8 *dest, U64 *dest_len, U8 *source,  U64 source_len, int level)
 {
