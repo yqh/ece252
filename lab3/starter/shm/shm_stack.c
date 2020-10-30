@@ -73,7 +73,7 @@ int init_shm_stack(ISTACK *p, int stack_size)
 
     p->size = stack_size;
     p->pos  = -1;
-    p->items = (int *) (p + sizeof(ISTACK));
+    p->items = (int *) ((char *)p + sizeof(ISTACK));
     return 0;
 }
 
