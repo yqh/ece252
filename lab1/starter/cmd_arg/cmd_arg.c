@@ -5,7 +5,7 @@
  */
 
 #include <stdio.h>	/* printf needs to include this header file */
-
+// lab 1 start
 /**
  *@brief: main function that lists all command line arguments
  *@param: int argc is the number of command line arguments. 
