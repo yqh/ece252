@@ -21,8 +21,9 @@ It contains the following sub-directories where we have example code to help you
 Using the code in the starter files is permitted and will not be considered as plagiarism.
 
 \section{Pre-lab Preparation}
-Read the entire lab2 manual to understand what the lab assignment is about. Build the starter code and run the executables. Work through the code and understand what they do and how they work. Create a single-threaded implementation of the \verb+paster+ command (see \ref{sec:man_paster_par}).
-Finish the pre-lab deliverable (see Section \ref{sec:lab2-pre-lab-deliverable}).
+Read the entire lab2 manual to understand what the lab assignment is about. Build the starter code and run the executables. Work through the code and understand what they do and how they work.
+%Create a single-threaded implementation of the \verb+paster+ command (see \ref{sec:man_paster_par}).
+%Finish the pre-lab deliverable (see Section \ref{sec:lab2-pre-lab-deliverable}).
 
 %\section{Warm-up Exercises}
 
@@ -143,6 +144,8 @@ There is a known memory leak bug related to \verb+pthread_exit()+. Please refer 
 
 \subsection{Pre-lab deliverables}
 \label{sec:lab2-pre-lab-deliverable}
+None.
+\iffalse
 Create a single-threaded implementation of the \verb+paster+ command. Pre-lab is due by the time that your scheduled lab sessions starts. No late submission of pre-lab is accepted. Grace days are not applicable to pre-lab submissions. The following are the steps to create your pre-lab deliverable submission.
 \begin{itemize}
 \item Create a directory and name it \verb+lab2-pre+.
@@ -150,9 +153,12 @@ Create a single-threaded implementation of the \verb+paster+ command. Pre-lab is
 \item Use \verb+zip+ command to zip up the contents of lab2-pre directory and name it lab2-pre.zip. We expect \verb+unzip lab2-pre.zip+ will produce a \verb+lab2-pre+ sub-directory in the current working directory and under the \verb+lab2-pre+ sub-directory is your source code and the Makefile.
 \end{itemize}
 Submit the \verb+lab2-pre.zip+ file to Lab2 Pre-lab Dropbox in Learn.
+\fi
 \subsection{Post-lab Deliverables}
 \label{sec:lab2-post-lab-deliverable}
 Create a multi-threaded implementation of the \verb+paster+ command.
+Submit your lab project 2 by tagging the commit with ``p2-submit'' on UWaterloo GitLab.
+\iffalse
 The following are the steps to create your post-lab deliverable submission.
 \begin{itemize}
 \item Create a directory and name it lab2.
@@ -160,7 +166,7 @@ The following are the steps to create your post-lab deliverable submission.
 \item Use \verb+zip+ command to zip up the contents of lab2 directory and name it lab2.zip. We expect \verb+unzip lab2.zip+ will produce a \verb+lab2+ sub-directory in the current working directory and under the \verb+lab2+ sub-directory is your source code and the Makefile.
 \end{itemize}
 Submit the \verb+lab2.zip+ file to Lab2 Dropbox in Learn.
-
+\fi
 
 \section{Marking Rubric}
 \begin{table}[ht]
@@ -168,12 +174,13 @@ Submit the \verb+lab2.zip+ file to Lab2 Dropbox in Learn.
 \begin{tabular}{|p{2cm}|p{2cm}|p{9cm}|}
 \hline
 Points & Sub-points &Description  \\ \hline
-30     &    & Pre-lab      \\ \hline
-       & 5  & \verb+Makefile+ correctly builds and cleans \\ \hline
-       & 25 & Implementation of single-threaded \verb+paster+ \\ \hline
-70     &       & Post-lab \\ \hline
+%30     &    & Pre-lab      \\ \hline
+%       & 5  & \verb+Makefile+ correctly builds and cleans \\ \hline
+%       & 25 & Implementation of single-threaded \verb+paster+ \\ \hline
+100    &       & Post-lab \\ \hline
+       & 10    & clean project files organization \\ \hline
        & 5     & Makefile correctly builds and cleans \\ \hline
-       & 65    & Implementation of multi-threaded \verb+paster+ \\ \hline
+       & 85    & Implementation of multi-threaded \verb+paster+ \\ \hline
 \end{tabular}
 \caption{Lab2 Marking Rubric}
 \label{tb_lab2_rubric}

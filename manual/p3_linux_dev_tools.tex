@@ -6,7 +6,7 @@
 There are a group of Linux Ubuntu servers that are open to ECE undergraduate students. The machines are listed at url: \url{https://ece.uwaterloo.ca/Nexus/arbeau/clients}. To access one of the machines, we recommend to use the alias name of \verb+eceubuntu.uwaterloo.ca+, which will direct the user to the most lightly loaded machine at the time of login.
 
 To access these machines from off campus. One way is to use the \href{https://uwaterloo.ca/information-systems-technology/services/virtual-private-network-vpn}{campus VPN}.
-Another way is to first connect to \verb+ecelinux4.uwaterloo.ca+ or \verb+eceterm.uwaterloo.ca+ and then connect to other Linux servers from there. Note that the \verb+ecelinux4+ should not be used for computing jobs, it is for accessing other Linux servers on campus.
+Another way is to first connect to \verb+eceterm.uwaterloo.ca+ and then connect to other Linux servers from there. Note that the \verb+eceterm+ should not be used for computing jobs, it is for accessing other Linux servers on campus.
 
 \section{Connecting to Linux servers}
 
@@ -62,7 +62,7 @@ First, a program is started from source code written by programmers. Second, the
 \begin{tabular}{llll}
 \hline
 Task & Tool & Examples\\ \hline
-Editing the source code &    Editor & vi, emacs \\  
+Editing the source code &    Editor & vi, emacs\\  
 Compiling the source code &  Compiler & gcc \\ 
 Debugging the program	  &  Debugger & gdb, ddd \\ \hline 
 \end{tabular}
@@ -205,6 +205,11 @@ We use Git version control software. It is installed both on the Linux servers a
 %Table \ref{} lists some frequently used git commands.
 
 \subsection{Integrated Development Environment}
+Visual Studio Code has been installed on all ECE ubuntu servers. Use the following command to invoke it. Note you will need X Windows support for the GUI interface.
+\begin{lstlisting}[style=bash]
+/snap/bin/code
+\end{lstlisting}
+\iffalse
 Eclipse with C/C++ Plug-in has been installed on all ECE Linux servers. Type the following command to bring up the eclipse frontend.
 \begin{lstlisting}[style=bash]
 /opt/eclipse64/eclipse
@@ -212,7 +217,7 @@ Eclipse with C/C++ Plug-in has been installed on all ECE Linux servers. Type the
 This eclipse is not the same as the default eclipse under \verb+/usr/bin+ directory. You may find running eclipse over network performs poorly at home though. It depends on how fast your network speed is. 
 
 If you have Linux operating system installed on your own personal computer, then you can download the eclipse with C/C++ plugin from the eclipse web site and then run it from your own local computer. However you should always make sure the program will also work on ecelinux machines, which is the environment TAs would be using to test your code.
-
+\fi
 \section{Man Page}
 Linux provides manual pages. You can use the command \verb+man+ followed by the specific command or function you are interested in to obtain detailed information. 
 

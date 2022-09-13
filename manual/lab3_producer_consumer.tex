@@ -54,7 +54,7 @@ Read the entire lab3 manual to understand what the lab assignment is about. Buil
 \end{enumerate}
 Linux man pages are also available on line at \url{https://linux.die.net/}.
 
-Finish the pre-lab deliverable (see Section \ref{sec:lab3-pre-lab-deliverable}).
+%Finish the pre-lab deliverable (see Section \ref{sec:lab3-pre-lab-deliverable}).
 The main data structure to represent the fixed size buffer is a queue. A circular queue is one commonly seen implementation of a fixed size buffer if FIFO is required. A stack is another implementation if LIFO is required. You can either create the data structure yourself or use one from an existing library. If you want to explore the C library queue facilities, check out the man pages of insque(3), remque(3) and queue(3). There are example code at the end of the man pages.
 
 \section{Lab Assignment}
@@ -149,6 +149,8 @@ Note that due to concurrency, your output may not be exactly the same as the sam
 \section{Deliverables}
 \subsection{Pre-lab Deliverables}
 \label{sec:lab3-pre-lab-deliverable}
+None.
+\iffalse
 Create an implementation of the \verb+paster2+ command that can work with a single producer processes and a single consumer process. To be more specific, your \verb+paster2+ should be able to handle input parameter $(B, P, C, X, N)$, where $B \ge 1$, $P = 1$, $C = 1$, $X \ge 0$, and $N = 1, 2, 3$. Pre-lab is due by the time that your scheduled lab sessions starts. No late submission of pre-lab is accepted. Grace days are not applicable to pre-lab submissions. The following are the steps to create your pre-lab deliverable submission.
 \begin{itemize}
 \item Create a directory and name it \verb+lab3-pre+.
@@ -156,10 +158,10 @@ Create an implementation of the \verb+paster2+ command that can work with a sing
 \item Use \verb+zip+ command to zip up the contents of lab3-pre directory and name it lab3-pre.zip. We expect \verb+unzip lab3-pre.zip+ will produce a \verb+lab3-pre+ sub-directory in the current working directory and under the \verb+lab3-pre+ sub-directory is your source code and the Makefile.
 \end{itemize}
 Submit the \verb+lab3-pre.zip+ file to Lab3 Pre-lab Dropbox in Learn.
-
+\fi
 \subsection{Post-lab Deliverables}
 \label{sec:lab3:postlab}
-Put the following items under a directory named lab3:
+Put the following items under the directory named lab3:
 %Submit a compressed archive file that contains the following:
 \begin{enumerate}
 \item All the source code and a Makefile. The Makefile default target is \verb+paster2+ executable file. That is command \verb+make+ should generate the \verb+paster2+ executable file. We also expect that the command \verb+make clean+ will remove the object code and the default target. That is the \verb+.o+ files and the executable files should be removed.
@@ -168,11 +170,14 @@ Put the following items under a directory named lab3:
   The first line of the file is the header of the timing result table. The rest of the rows are the timing result command line argument values and the timing results. The columns of the .csv file from left to right are values of $B$, $P$, $C$, $X$, and the corresponding paster2 average execution time. We have an example .csv file in the starter code folder named \verb+lab3_eceubuntu1.csv+ for illustration purpose.
 
   Run your paster2 on \verb+eceubuntu1+. Record the average timing measurement data for the $(B, P, C, X, N)$ values shown in Table \ref{tb_timing_lab3} for a particular host. Note that for each given $(B, P, C, X, N)$ value in the table, you need to run the program $n$ times and compute the average time. We recommend $n=5$.
-          \begin{table}[h]
-          \begin{center}
-          \begin{tabular}{|c|c|c|c|c|c|}
-          \hline
- B   & P   & C   & X   & N   &Time   \\ \hline 
+
+  
+Submit your lab project 3 by tagging the commit with ``p3-submit'' on UWaterloo GitLab.
+\begin{table}[H]
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+B   & P   & C   & X   & N   &Time   \\ \hline 
 5   & 1   & 1   & 0   & 1   &   \\ \hline
 5   & 1   & 5   & 0   & 1   &   \\ \hline
 5   & 5   & 1   & 0   & 1   &   \\ \hline
@@ -212,11 +217,11 @@ Put the following items under a directory named lab3:
 10   & 10   & 1   & 400   & 1   &   \\ \hline
 10   & 10   & 5   & 400   & 1   &   \\ \hline
 10   & 10   & 10   & 400   & 1   &   \\ \hline
-          \end{tabular}
-          \caption{Timing measurement data table for given $(B, P, C, X, N)$ values.}
-          \label{tb_timing_lab3}
-          \end{center}
-          \end{table}
+\end{tabular}
+\caption{Timing measurement data table for given $(B, P, C, X, N)$ values.}
+\label{tb_timing_lab3}
+\end{center}
+\end{table}
 
  %         \begin{table}[h]
  %         \begin{center}
@@ -244,22 +249,24 @@ Put the following items under a directory named lab3:
  %         \end{center}
  %         \end{table}
 \end{enumerate}
+\iffalse
 Use \verb+zip+ command to archive and compress the contents of lab3 directory and name it \verb+lab3.zip+. We expect the command \verb+unzip lab3.zip+ will produce a \verb+lab3+ sub-directory in the current working directory and under the \verb+lab3+ sub-directory we will find your source code, the Makefile and the lab3\_hostname.csv file.
-
+\fi
 \section{Marking Rubric}
 The Rubric for marking is listed in Table \ref{tb_lab3_ipc_rubric}.
 
-\begin{table}[ht]
+\begin{table}[h!]
 \begin{center}
 \begin{tabular}{|p{2cm}|p{2cm}|p{9cm}|}
 \hline
 Points & Sub-points &Description  \\ \hline
-20     &    & Pre-lab      \\ \hline
-       & 5  & \verb+Makefile+\\ \hline
-       & 15 & A partial implementation of \verb+paster2+. The code works correctly with input of $(B, P, C, X, N)$, where $B \ge 1$, $P = 1$, $C = 1$, $X \ge 0$, and $N = 1, 2, 3$. \\ \hline
-80     &       & Post-lab \\ \hline
+%20     &    & Pre-lab      \\ \hline
+%       & 5  & \verb+Makefile+\\ \hline
+%       & 15 & A partial implementation of \verb+paster2+. The code works correctly with input of $(B, P, C, X, N)$, where $B \ge 1$, $P = 1$, $C = 1$, $X \ge 0$, and $N = 1, 2, 3$. \\ \hline
+100    &       & Post-lab \\ \hline
+       & 10    & clean project files organization \\ \hline
        & 5     & \verb+Makefile+ \\ \hline
-       & 75    & Complete implementation of \verb+paster2+ and timing data\\ \hline
+       & 85    & Complete implementation of \verb+paster2+ and timing data\\ \hline
 \end{tabular}
 \caption{Lab3 Marking Rubric}
 \label{tb_lab3_ipc_rubric}

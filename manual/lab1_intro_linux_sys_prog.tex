@@ -35,7 +35,7 @@ Using the code in the starter files is permitted and will not be considered as p
 \section{Pre-lab Preparation}
 
 %Read Chapter \ref{ch_linux_env}. 
-Read the Introduction to ECE Linux Programming Environment supplementary material in Part \ref{part_ref} Chapter \ref{ch_linux_env}. Do the pre-lab exercises in Section \ref{sec_ex1}. Finish the pre-lab programming assignment before your scheduled lab starts (see \ref{sec:lab1_prelab_assignment}).
+Read the Introduction to ECE Linux Programming Environment supplementary material in Part \ref{part_ref} Chapter \ref{ch_linux_env}. Do the pre-lab exercises in Section \ref{sec_ex1}. Do the pre-lab programming exercise (see \ref{sec:lab1_prelab_assignment}).
 \subsection{Basic Linux Commands Exercises}
 \label{sec_ex1}
 
@@ -80,9 +80,9 @@ These pre-lab exercises are to practice some basic commands on Linux.
      \item Use gdb or ddd to run the program under \url{http://github.com/yqh/ece252/tree/master/lab1/starter/segfault} directory of the starter code. When the code generates a segmentation fault inside the debugger, run the gdb command \code{where} to see the stack trace and fix the segmentation fault problem of the code. 
 \end{enumerate}
 
-\subsection{Pre-lab Assignment}
+\subsection{Pre-lab Programming Exercise}
 \label{sec:lab1_prelab_assignment}
-We will write some small pieces of code that can be used in the final lab assignment code. We will create a command line program named \verb+pnginfo+ that prints the dimensions of a valid PNG image file and an error message to the standard output if the input file is not a PNG file or is a corrupted PNG file. The command takes one input argument, which is the path name of a file. Both absolute path name and relative path name are accepted. For example, command \code{./pnginfo WEEF\_1.png} will output the following line: 
+We will write some small pieces of code that can be used in the final lab project assignment code. We will create a command line program named \verb+pnginfo+ that prints the dimensions of a valid PNG image file and an error message to the standard output if the input file is not a PNG file or is a corrupted PNG file. The command takes one input argument, which is the path name of a file. Both absolute path name and relative path name are accepted. For example, command \code{./pnginfo WEEF\_1.png} will output the following line: 
 \begin{verbatim}
 WEEF_1.png: 450 x 229 
 \end{verbatim}
@@ -97,7 +97,8 @@ IDAT chunk CRC error: computed 34324f1e, expected dc5f7b84
 \end{verbatim}
 
 You will find starter files under \href{http://github.com/yqh/ece252/tree/master/lab1/starter/png_util}{png\_util} directory are helpful. To make our pre-lab code reusable in the final lab, we will create two functions. One is \verb+is_png()+ which takes eight bytes and check whether they match the PNG image file signature. Another function is \verb+get_data_IHDR()+ which extracts the image meta information including height and width from a PNG file IHDR chunk. You are free to design the signatures of these two functions so that they will be re-used in your lab1 final solution and future labs 2 and 3 solutions\footnote{lab2 and lab3 are based on the code of lab1}. However in \verb+lab_png.h+ you will find some existing function prototypes that we put there to show one possible function prototype design. Feel free to modify these function prototypes to fit your own design. For computing the CRC of a sequence of bytes, the starter file already provides the crc.c and crc.h and the main.c that demos how to call the crc function to do the computation.
-\section{Lab Assignment}
+
+\section{LAB Project Assignment}
 \subsection{Problem statement}
 
 \begin{wrapfigure}{r}{2.5in}
@@ -270,6 +271,8 @@ To create a new PNG for the concatenated images, IHDR chunk also needs to have t
 \section{Deliverables}
 \subsection{Pre-lab deliverables}
 \label{lab1_prelab_deliverable}
+None.
+\iffalse
 Pre-lab is due by the time that your scheduled lab sessions starts. No late submission of pre-lab is accepted. Grace days are not applicable to pre-lab submissions. The following are the steps to create your pre-lab deliverable submission.
 \begin{itemize}
 \item Create a directory and name it lab1-pre.
@@ -277,8 +280,10 @@ Pre-lab is due by the time that your scheduled lab sessions starts. No late subm
 \item Use \verb+zip+ command to zip up the contents of lab1-pre directory and name it lab1-pre.zip. We expect \verb+unzip lab1-pre.zip+ will produce a \verb+lab1-pre+ sub-directory in the current working directory and under the \verb+lab1-pre+ sub-directory is your source code and the Makefile.
 \end{itemize}
 Submit the \verb+lab1-pre.zip+ file to Lab1 Pre-lab Dropbox in Learn by the time your scheduled lab session starts. The TA on duty will evaluate the pre-lab by letting you demo the submitted program during the scheduled lab session.
-
+\fi
 \subsection{Post-lab Deliverables}
+You submit your lab project 1 by tagging the commit with ``p1-submit'' on UWaterloo GitLab.
+\iffalse
 Post-lab is due two days after your scheduled lab session at 22:00. Grace days can be used towards late submissions of the post-lab deliverable. The following are the steps to create your post-lab deliverable submission.
 \begin{itemize}
 \item Create a directory and name it lab1.
@@ -286,22 +291,24 @@ Post-lab is due two days after your scheduled lab session at 22:00. Grace days c
 \item Use \verb+zip+ command to zip up the contents of lab1 directory and name it lab1.zip. We expect \verb+unzip lab1.zip+ will produce a \verb+lab1+ sub-directory in the current working directory and under the \verb+lab1+ sub-directory is your source code and the Makefile.
 \end{itemize}
 Submit the \verb+lab1.zip+ file to Lab1 Dropbox in Learn.
+\fi
 \section{Marking Rubric}
 \begin{table}[ht]
 \begin{center}
 \begin{tabular}{|p{2cm}|p{2cm}|p{9cm}|}
 \hline
 Points & Sub-points &Description  \\ \hline
-15     &   & Pre-lab      \\ \hline
-       & 2 & \verb+Makefile+ correctly builds and cleans \\ \hline
-       & 13& Implementation of \verb+pnginfo+ \\ \hline
+%15     &   & Pre-lab      \\ \hline
+%       & 2 & \verb+Makefile+ correctly builds and cleans \\ \hline
+%       & 13& Implementation of \verb+pnginfo+ \\ \hline
 %       & 3 & \verb+ckpng+ detects a non-png file type \\ \hline
 %       & 5 & \verb+ckpng+ prints non-corrupted png image dimensions \\ \hline
 %       & 5 & \verb+ckpng+ detects incorrect CRC of the simple PNG data chunk \\ \hline
-85     &        & Post-lab \\ \hline
-       & 10     & Makefile correctly builds and cleans \\ \hline
-       & 30     & Implementation of \verb+findpng+  \\ \hline
-       & 45     & Implementation of \verb+catpng+ \\ \hline
+100     &        & Post-lab \\ \hline
+        & 10     & clean project files organization \\ \hline
+        &  5     & Makefile correctly builds and cleans \\ \hline
+        & 35     & Implementation of \verb+findpng+  \\ \hline
+        & 50     & Implementation of \verb+catpng+ \\ \hline
 \end{tabular}
 \caption{Lab1 Marking Rubric}
 \label{tb_lab1_rubric}

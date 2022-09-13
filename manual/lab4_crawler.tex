@@ -36,7 +36,7 @@ Read the entire lab4 manual to understand what the lab assignment is about. Buil
 \end{enumerate}
 Linux man pages are also available on line at \url{https://linux.die.net/}.
 
-Create a single-threaded implementation of the \verb+findpng2+ command (see Section \ref{sec:findpng2_man}). Finish the pre-lab deliverable (see Section \ref{sec:lab4-pre-lab-deliverable}).
+%Create a single-threaded implementation of the \verb+findpng2+ command (see Section \ref{sec:findpng2_man}). Finish the pre-lab deliverable (see Section \ref{sec:lab4-pre-lab-deliverable}).
 
 \section{Lab Assignment}
 \subsection{Problem Statement}
@@ -142,6 +142,8 @@ If an URL has been visited already, then we do not want to visit it again. So a 
 \section{Deliverables}
 \subsection{Pre-lab deliverables}
 \label{sec:lab4-pre-lab-deliverable}
+None.
+\iffalse
 Create a single-threaded implementation of the \verb+findpng2+ command. The \verb+-v+ option implementation is not required for pre-lab. We will test the pre-lab with \verb+-t 1+ and \verb+-m NUM+ where \verb+NUM >= 0+. Pre-lab is due by the time that your scheduled lab sessions starts. No late submission of pre-lab is accepted. Grace days are not applicable to pre-lab submissions. The following are the steps to create your pre-lab deliverable submission.
 \begin{itemize}
 \item Create a directory and name it \verb+lab4-pre+.
@@ -149,10 +151,11 @@ Create a single-threaded implementation of the \verb+findpng2+ command. The \ver
 \item Use \verb+zip+ command to zip up the contents of lab4-pre directory and name it lab4-pre.zip. We expect \verb+unzip lab4-pre.zip+ will produce a \verb+lab4-pre+ sub-directory in the current working directory and under the \verb+lab4-pre+ sub-directory is your source code and the Makefile.
 \end{itemize}
 Submit the \verb+lab4-pre.zip+ file to Lab4 Pre-lab Dropbox in Learn.
+\fi
 
 \subsection{Post-lab Deliverables}
 \label{sec:lab4:postlab}
-Put the following items under a directory named lab4:
+Put the following items under the directory named lab4:
 %Submit a compressed archive file that contains the following:
 \begin{enumerate}
 \item All the source code and a Makefile. The Makefile default target is \verb+findpng2+ executable file. That is command \verb+make+ should generate the \verb+findpng2+ executable file. We also expect that the command \verb+make clean+ will remove the object code and the default target. That is the \verb+.o+ files and the executable file should be removed.
@@ -161,7 +164,7 @@ Put the following items under a directory named lab4:
   The first line of the file is the header of the timing result table. The rest of the rows are the timing result command line argument values and the timing results. The columns of the .csv file from left to right are values of $T$ (the number of threads), $M$ (the number of unique PNG links to search for) and $TIME$ (the corresponding findpng2 average execution time). We have an example .csv file in the starter code folder named \verb+lab4_eceubuntu1.csv+ for illustration purpose.
 
   Run your findpng2 on eceubuntu1. Record the average timing measurement data for the $(T, M)$ values shown in Table \ref{tb_timing_lab4} for a particular host. Note that for each given $(T, M)$ value in the table, you need to run the program $n$ times and compute the average time. We recommend $n=5$.
-\begin{table}[h]
+\begin{table}[H]
 \begin{center}
 \begin{tabular}{|c|c|c|}
 \hline
@@ -170,18 +173,18 @@ T     & M    & Time \\ \hline
 1 &    1 &    \\ \hline
 1 &    10 &    \\ \hline
 1 &    20 &    \\ \hline
-1 &    30 &    \\ \hline
-1 &    40 &    \\ \hline
-1 &    50 &    \\ \hline
+1 &    30 &     \\ \hline
+1 &    40 &     \\ \hline
+1 &    50 &     \\ \hline
 1 &    100 &    \\ \hline
-10 &    1 &    \\ \hline
+10 &    1 &     \\ \hline
 10 &    10 &    \\ \hline
 10 &    20 &    \\ \hline
 10 &    30 &    \\ \hline
 10 &    40 &    \\ \hline
 10 &    50 &    \\ \hline
-10 &    100 &    \\ \hline
-20 &    1 &    \\ \hline
+10 &    100 &   \\ \hline
+20 &    1 &     \\ \hline
 20 &    10 &    \\ \hline
 20 &    20 &    \\ \hline
 20 &    30 &    \\ \hline
@@ -195,8 +198,11 @@ T     & M    & Time \\ \hline
 \end{center}
 \end{table}
 \end{enumerate}
-Use \verb+zip+ command to archive and compress the contents of lab4 directory and name it \verb+lab4.zip+. We expect the command \verb+unzip lab4.zip+ will produce a \verb+lab4+ sub-directory in the current working directory and under the \verb+lab4+ sub-directory we will find your source code, the Makefile and the lab4\_hostname.csv file.
 
+\iffalse
+Use \verb+zip+ command to archive and compress the contents of lab4 directory and name it \verb+lab4.zip+. We expect the command \verb+unzip lab4.zip+ will produce a \verb+lab4+ sub-directory in the current working directory and under the \verb+lab4+ sub-directory we will find your source code, the Makefile and the lab4\_hostname.csv file.
+\fi
+Submit your lab project 4 by tagging the commit with ``p4-submit'' on UWaterloo GitLab.
 \section{Marking Rubric}
 
 Table \ref{tb_lab4_rubric} shows the rubric for marking the lab.
@@ -206,12 +212,14 @@ Table \ref{tb_lab4_rubric} shows the rubric for marking the lab.
 \begin{tabular}{|p{2cm}|p{2cm}|p{9cm}|}
 \hline
 Points & Sub-points &Description  \\ \hline
-25     &    & Pre-lab      \\ \hline
-       & 5  & \verb+Makefile+ correctly builds and cleans \\ \hline
-       & 20 & Implementation of single-threaded \verb+findpng2+ \\ \hline
-75     &       & Post-lab \\ \hline
+%25     &    & Pre-lab      \\ \hline
+%       & 5  & \verb+Makefile+ correctly builds and cleans \\ \hline
+%       & 20 & Implementation of single-threaded \verb+findpng2+ \\ \hline
+100    &       & Post-lab \\ \hline
+       & 10    & clean project files organization \\ \hline
        & 5     & Makefile correctly builds and cleans \\ \hline
-       & 70    & Implementation of multi-threaded \verb+findpng2+ \\ \hline
+       & 65    & Implementation of multi-threaded \verb+findpng2+ \\ \hline
+       & 20    & Correct timing results in lab4\_hostname.csv file\\ \hline
 \end{tabular}
 \caption{Lab4 Marking Rubric}
 \label{tb_lab4_rubric}

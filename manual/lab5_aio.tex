@@ -118,11 +118,11 @@ If an URL has been visited already, then we do not want to visit it again. So a 
 \fi
 \section{Deliverables}
 \subsection{Pre-lab Deliverables}
-There is no pre-lab deliverable for this lab.
-
+None.
+%There is no pre-lab deliverable for this lab.
 \subsection{Post-lab Deliverables}
 \label{sec:lab5:postlab}
-Put the following items under a directory named lab5:
+Put the following items under the directory named lab5:
 \begin{enumerate}
 \item All the source code and a Makefile. The Makefile default target is \verb+findpng3+ executable file. That is command \verb+make+ should generate the \verb+findpng3+ executable file. We also expect that the command \verb+make clean+ will remove the object code and the default target. That is the \verb+.o+ files and the executable file should be removed.
 \item A timing result .csv file named lab5\_hostname.csv 
@@ -164,8 +164,10 @@ T     & M    & Time \\ \hline
 \end{center}
 \end{table}
 \end{enumerate}
+\iffalse
 Use \verb+zip+ command to archive and compress the contents of lab5 directory and name it \verb+lab5.zip+. We expect the command \verb+unzip lab5.zip+ will produce a \verb+lab5+ sub-directory in the current working directory and under the \verb+lab5+ sub-directory we will find your source code, the Makefile and the lab5\_hostname.csv file.
-
+\fi
+Submit your lab project 5 by tagging the commit with ``p5-submit'' on UWaterloo GitLab.
 \section{Marking Rubric}
 The Rubric for marking is listed in Table \ref{tb_lab5_aio_rubric}.
 
@@ -174,9 +176,10 @@ The Rubric for marking is listed in Table \ref{tb_lab5_aio_rubric}.
 \begin{tabular}{|p{4cm}|p{10cm}|}
 \hline
 Points & Description \\ \hline
-10     & Makefile correctly builds and cleans \verb+findpng3+\\ \hline  
+10     & clean project files organization \\ \hline
+ 5     & Makefile correctly builds and cleans \verb+findpng3+\\ \hline  
 65     & Implementation of \verb+findpng3+ in Section \ref{sec:findpng3_manpage} \\ \hline
-25     & Correct timing results in lab5\_hostname.csv file\\ \hline
+20     & Correct timing results in lab5\_hostname.csv file\\ \hline
 % \hline
 % Bonus Points & \\ \hline  
 %50     & Implementation of the bonus feature in Section \ref{sec:findpng3_bonus} \\ \hline  
