@@ -2,7 +2,7 @@
 ############################################################################
 # File Name  : run_lab5.sh
 # Author     : Yiqing Huang 
-# Usage      : Name your executable as "paster2" and put it in the
+# Usage      : Name your executable as "findpng3" and put it in the
 #              same directory where you put this shell script.
 #              Make sure the script has x bit set for user. If not, type
 #              chmod u+x ./run_lab5.sh
